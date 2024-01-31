@@ -1,0 +1,394 @@
+:root {
+    --arrow-bg: rgba(255, 255, 255, 0.3);
+    --arrow-icon: url(https://upload.wikimedia.org/wikipedia/commons/9/9d/Caret_down_font_awesome_whitevariation.svg);
+    --option-bg: white;
+    --select-bg: rgba(255, 255, 255, 0.2);
+}
+
+.HomePageMainDiv {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    --color: #E1E1E1;
+  background-color: #F3F3F3;
+  background-image: linear-gradient(0deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%,transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%,transparent),
+      linear-gradient(90deg, transparent 24%, var(--color) 25%, var(--color) 26%, transparent 27%,transparent 74%, var(--color) 75%, var(--color) 76%, transparent 77%,transparent);
+  background-size: 55px 55px;
+}
+
+.date {
+    width: 90vw;
+    color: #262730;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.date label{
+    color: #69e0a4;
+}
+
+.heading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #262730;
+}
+
+.heading span {
+    font-weight: 500;
+    font-size: larger;
+}
+
+.InvoiceForm {
+    padding: 10%;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+.addpaymentbtndiv {
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+}
+
+/*model styles*/
+.modal {
+    padding: 10%;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(35deg, red, purple);
+}
+
+.modal-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.modal-content select {
+    /* Reset */
+    appearance: none;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    /* Personalize */
+    width: auto;
+    padding: 1rem 2rem 1rem 1rem;
+    background: var(--arrow-icon) no-repeat right 0.8em center / 1.4em,
+      linear-gradient(to left, var(--arrow-bg) 3em, var(--select-bg) 3em);
+    color: white;
+    border-radius: 0.25em;
+    box-shadow: 0 0 1em 0 rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+
+    /* Remove IE arrow */
+    &::-ms-expand {
+        display: none;
+    }
+
+    /* Remove focus outline */
+    &:focus {
+        outline: none;
+    }
+    
+    /* <option> colors */
+    option {
+        color: inherit;
+        background-color: var(--option-bg);
+    }
+}
+
+
+/*Add Payment Type Button*/
+.AddPaymentbtn {
+    position: relative;
+    width: 40px;
+    height: 30px;
+    background: transparent;
+    cursor: pointer;
+    display: block;
+    margin-left: 50%;
+  }
+  
+  .AddPaymentbtn input {
+    display: none;
+  }
+  
+  .AddPaymentbtn span {
+    display: block;
+    position: absolute;
+    height: 4px;
+    width: 100%;
+    background: black;
+    border-radius: 9px;
+    opacity: 1;
+    left: 0;
+    transform: rotate(0deg);
+    transition: .25s ease-in-out;
+  }
+  
+  .AddPaymentbtn span:nth-of-type(1) {
+    bottom: 110%;
+    left: 50%;
+    transform: rotate(90deg);
+    transform-origin: left center;
+  }
+  
+  .AddPaymentbtn span:nth-of-type(2) {
+    top: 50%;
+    transform: translateY(-50%);
+    transform-origin: left center;
+  }
+  
+  .AddPaymentbtn span:nth-of-type(3) {
+    top: 100%;
+    transform-origin: left center;
+    transform: translateY(-100%);
+  }
+  
+  .AddPaymentbtn input:checked ~ span:nth-of-type(1) {
+    transform: rotate(45deg);
+    top: 0px;
+    left: 5px;
+  }
+  
+  .AddPaymentbtn input:checked ~ span:nth-of-type(2) {
+    transform: rotate(-45deg);
+    top: 28px;
+    left: 5px;
+  }
+
+
+/*Button styles*/
+.Submitbtn {
+    font-family: inherit;
+    font-size: 20px;
+    background: royalblue;
+    color: white;
+    padding: 0.7em 1em;
+    padding-left: 0.9em;
+    display: flex;
+    align-items: center;
+    border: none;
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  
+  .Submitbtn span {
+    display: block;
+    margin-left: 0.3em;
+    transition: all 0.3s ease-in-out;
+  }
+  
+  .Submitbtn svg {
+    display: block;
+    transform-origin: center center;
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .Submitbtn:hover .svg-wrapper {
+    animation: fly-1 0.6s ease-in-out infinite alternate;
+  }
+  
+  .Submitbtn:hover svg {
+    transform: translateX(6em) rotate(45deg) scale(1.5);
+  }
+  
+  .Submitbtn:hover span {
+    transform: translateX(13.3em);
+  }
+  
+  .Submitbtn:active {
+    transform: scale(0.95);
+  }
+  
+  @keyframes fly-1 {
+    from {
+      transform: translateY(0.1em);
+    }
+  
+    to {
+      transform: translateY(-0.1em);
+    }
+  }
+  
+
+/*Radio Button Styles*/
+
+.paymentType {
+    --s: 1em; /* control the size */
+    --g: 20px; /* the gap */
+    --c: #69e0a4; /* the active color */
+  
+    display: grid;
+    grid-auto-rows: 1fr;
+    gap: var(--g);
+    position: relative;
+    color: #262730;
+    font-weight: 400;
+  }
+  .paymentType:before {
+    content: "";
+    position: absolute;
+    height: calc(var(--s) / 2);
+    left: calc(var(--s) / 4 + var(--_x, 0px));
+    top: calc(var(--s) / 4);
+    background: var(--c);
+    border-radius: 50%;
+    aspect-ratio: 1;
+    transition: 0.4s, left cubic-bezier(0.1, -2000, 0.7, -2000) 0.4s;
+  }
+  .paymentType label {
+    display: inline-flex;
+    line-height: var(--s);
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .paymentType input {
+    height: var(--s);
+    aspect-ratio: 1;
+    border: calc(var(--s) / 8) solid var(--_c, #939393);
+    border-radius: 50%;
+    outline-offset: calc(var(--s) / 10);
+    padding: calc(var(--s) / 8);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    font-size: inherit;
+    margin: 0;
+    transition: 0.3s;
+  }
+  .paymentType input:checked {
+    --_c: var(--c);
+  }
+  .paymentType:not(:has(input:checked)):before {
+    --_i: -1;
+    opacity: 0;
+  }
+  .paymentType:has(input:checked):before {
+    opacity: 1;
+    transform: translateY(calc(var(--_i) * (var(--s) + var(--g))));
+  }
+  .paymentType:has(label:nth-child(1) input:checked):before {
+    --_i: 0;
+    --_x: 0.02px;
+  }
+  .paymentType:has(label:nth-child(2) input:checked):before {
+    --_i: 1;
+    --_x: 0.04px;
+  }
+  .paymentType:has(label:nth-child(3) input:checked):before {
+    --_i: 2;
+    --_x: 0.06px;
+  }
+  .paymentType:has(label:nth-child(4) input:checked):before {
+    --_i: 3;
+    --_x: 0.08px;
+  }
+  .paymentType:has(label:nth-child(5) input:checked):before {
+    --_i: 4;
+    --_x: 0.1px;
+  }
+  /* and so on ..*/
+  
+  .paymentType input:disabled {
+    background: linear-gradient(#939393 0 0) 50%/100% 20% no-repeat content-box;
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  @media print {
+    input[type="radio"] {
+      -webkit-appearance: auto;
+      -moz-appearance: auto;
+      appearance: auto;
+      background: none;
+    }
+  }
+  @supports not selector(:has(*)) {
+    .paymentType:before {
+      display: none;
+    }
+    .paymentType input:checked {
+      --_c: var(--c);
+      background: var(--c) content-box;
+    }
+  }
+/*Input Styles*/
+
+.inputbox {
+    position: relative;
+    width: 80vw;
+}
+  
+.inputbox input {
+    position: relative;
+    width: 100%;
+    padding: 20px 10px 10px;
+    background: transparent;
+    outline: none;
+    box-shadow: none;
+    border: none;
+    color: #EFF0D1;
+    font-size: 1em;
+    letter-spacing: 0.05em;
+    transition: 0.5s;
+    z-index: 10;
+}
+  
+.inputbox span {
+    position: absolute;
+    left: 0;
+    top: 0;
+    padding: 20px 10px 10px;
+    font-size: 1em;
+    color: #8f8f8f;
+    letter-spacing: 00.05em;
+    transition: 0.5s;
+    pointer-events: none;
+}
+  
+.inputbox input:focus ~span,
+.inputbox input:focus ~span {
+    color: #77BA99;
+    transform: translateX(-10px) translateY(-34px);
+    top: -10px;
+    font-weight: 400;
+
+}
+
+.inputbox input::placeholder {
+    color: #77BA99;
+    opacity: 1;
+}
+  
+::-ms-input-placeholder { 
+    color: #77BA99;
+}
+  
+.inputbox i {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 2px;
+    background: #D33F49;
+    border-radius: 4px;
+    transition: 0.5s;
+    pointer-events: none;
+    z-index: 9;
+}
+  
+.inputbox input:focus ~i,
+.inputbox input:focus ~i {
+    height: 44px;
+}
+
