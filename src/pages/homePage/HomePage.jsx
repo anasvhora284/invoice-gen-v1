@@ -12,6 +12,7 @@ import {
   Alert,
   IconButton,
 } from "@mui/material";
+import LoadingButton from "@mui/lab/LoadingButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import React, { useState, useEffect, useRef } from "react";
 import { inWords } from "../../utils";
@@ -387,7 +388,7 @@ const HomePage = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: "16px",
-                marginBottom: "40px",
+                marginBottom: "90px",
               }}
             >
               <NumericFormat
@@ -518,8 +519,10 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "sticky",
+                position: "fixed",
                 bottom: "0",
+                width: "calc(100vw - 32px)",
+                right: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
@@ -560,7 +563,7 @@ const HomePage = () => {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <IconButton
-                sx={{ backgroundColor: "#1f4373" }}
+                sx={{ backgroundColor: "#1f4373", padding: "4px" }}
                 onClick={() => {
                   setCurrentStep(1);
                 }}
@@ -662,7 +665,7 @@ const HomePage = () => {
               Amount Details:
             </Typography>
 
-            <Box>
+            <Box sx={{ marginBottom: "68px" }}>
               {amountDetails.subscriptionFee ? (
                 <Box
                   sx={{
@@ -924,16 +927,20 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "sticky",
+                position: "fixed",
                 bottom: "0",
+                width: "calc(100vw - 32px)",
+                right: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
               }}
             >
-              <Button
+              <LoadingButton
                 variant="contained"
                 size="small"
+                loading={loading}
+                loadingIndicator="generating invoice…"
                 sx={{
                   fontFamily: "Montserrat",
                   fontWeight: "bold",
@@ -944,7 +951,7 @@ const HomePage = () => {
                 onClick={downloadPDF}
               >
                 Generate Invoice
-              </Button>
+              </LoadingButton>
             </Box>
           </div>
         ) : (
