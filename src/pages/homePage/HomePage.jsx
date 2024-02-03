@@ -22,6 +22,8 @@ import { indigo } from "@mui/material/colors";
 import InvoiceHtml from "../invoice/invoice";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import EsignModel from "../../components/eSignModel/eSignModel";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 const BpIcon = styled("span")(({ theme }) => ({
   borderRadius: "50%",
@@ -68,6 +70,9 @@ const HomePage = () => {
   });
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [eSignModelOpen, setESignModelOpen] = useState(false);
+  const [eSign, setEsign] = React.useState("");
+  const [eSignError, setEsignError] = useState(false);
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
@@ -103,7 +108,6 @@ const HomePage = () => {
   };
 
   const handleAmountDetailsChange = (amountFieldName, valueObject) => {
-    console.log(valueObject, "value");
     setAmountDetails({
       ...amountDetails,
       [amountFieldName]: valueObject?.value ? Number(valueObject.value) : null,
@@ -212,9 +216,12 @@ const HomePage = () => {
         unit: "mm",
         format: "a4",
       });
-      pdf.addImage(canvas, "PNG", 15, 0, 175, 250);
+      pdf.addImage(canvas, "PNG", 15, 20, 175, 250);
       pdf.save("centered-document.pdf");
       setLoading(false);
+      setESignModelOpen(false);
+      setEsignError(false);
+      setEsign("");
     });
   };
 
@@ -226,6 +233,36 @@ const HomePage = () => {
     currentDate,
   };
 
+  const handleSubmitEsign = () => {
+    const envData = import.meta.env.VITE_DATA;
+    const parsedEnvdata = envData.split(",");
+    const dataArrOfObj = [];
+
+    for (let i = 0; i < parsedEnvdata.length; i += 3) {
+      const obj = {
+        name: parsedEnvdata[i].replaceAll("_", " "),
+        mobile: parsedEnvdata[i + 1],
+        key: parsedEnvdata[i + 2].replaceAll("_", " "),
+      };
+      dataArrOfObj.push(obj);
+    }
+
+    const invoiceGenerator = dataArrOfObj.find((data) => {
+      return data.key === eSign;
+    });
+
+    if (invoiceGenerator) {
+      userData.generatorName = invoiceGenerator.name;
+      userData.generatorMobile = invoiceGenerator.mobile;
+      setTimeout(() => {
+        downloadPDF();
+      }, 500);
+    } else {
+      delete userData.generatorName;
+      delete userData.generatorMobile;
+      setEsignError(true);
+    }
+  };
   return (
     <>
       <div
@@ -931,7 +968,7 @@ const HomePage = () => {
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
               }}
             >
-              <Button
+              <LoadingButton
                 variant="contained"
                 size="small"
                 sx={{
@@ -941,11 +978,23 @@ const HomePage = () => {
                   textTransform: "none",
                   width: "100%",
                 }}
-                onClick={downloadPDF}
+                onClick={() => {
+                  setESignModelOpen(true);
+                }}
               >
-                Generate Invoice
-              </Button>
+                Proceed
+              </LoadingButton>
             </Box>
+            <EsignModel
+              open={eSignModelOpen}
+              setOpen={setESignModelOpen}
+              handleSubmit={handleSubmitEsign}
+              setEsignError={setEsignError}
+              eSignError={eSignError}
+              eSign={eSign}
+              setEsign={setEsign}
+              loading={loading}
+            />
           </div>
         ) : (
           <></>
