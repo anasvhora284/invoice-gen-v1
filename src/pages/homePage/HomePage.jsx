@@ -20,6 +20,8 @@ import appLogo from "../../assets/android/android-launchericon-512-512.png";
 import styled from "@emotion/styled";
 import { indigo } from "@mui/material/colors";
 import InvoiceHtml from "../invoice/invoice";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const BpIcon = styled("span")(({ theme }) => ({
   borderRadius: "50%",
@@ -138,8 +140,6 @@ const HomePage = () => {
     });
   };
 
-  console.log(fullName, totalAmount, paymentMethod, amountDetails, "fullName");
-
   const checkGeneratedInvoiceDisabled = () => {
     return !(
       fullName &&
@@ -161,12 +161,18 @@ const HomePage = () => {
         message: "please fill up atleast one amount Detail",
       });
     }
+
+    if (
+      fullName &&
+      totalAmount &&
+      amountDetailsError.notificationType === "success"
+    ) {
+      downloadPDF();
+    }
   };
 
   useEffect(() => {
     const amountDetailsValues = Object.values(amountDetails);
-
-    console.log(amountDetailsValues.some(Boolean), "amountDetailsValues");
 
     if (totalAmount && !amountDetailsValues.some(Boolean)) {
       setAmountDetailsError({
@@ -204,7 +210,7 @@ const HomePage = () => {
   }, [amountDetails, totalAmount]);
 
   function numberWithCommas(x) {
-    return x.toLocaleString("en-IN");
+    return x.toFixed(2).toLocaleString("en-IN");
   }
 
   const getAmountDetailsCalculation = () => {
@@ -219,6 +225,25 @@ const HomePage = () => {
       return `₹ ${numberWithCommas(sum)}/-`;
     }
     return "--";
+  };
+
+  const receiptRef = useRef(null);
+
+  const downloadPDF = () => {
+    const capture = receiptRef.current;
+
+    html2canvas(capture, {
+      scale: 4,
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+      pdf.addImage(canvas, "PNG", 15, 0, 175, 250);
+      pdf.save("centered-document.pdf");
+    });
   };
 
   return (
@@ -523,7 +548,6 @@ const HomePage = () => {
           </Button>
         </Box>
       </div>
-
       <div
         ref={receiptRef}
         style={{
@@ -531,7 +555,6 @@ const HomePage = () => {
           maxWidth: "512px",
           margin: "auto",
           position: "relative",
-          fontFamily: "Montserrat",
           paddingInline: "20px",
         }}
       >
