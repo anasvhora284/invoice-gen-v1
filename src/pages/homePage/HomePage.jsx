@@ -8,13 +8,39 @@ import {
   Radio,
   RadioGroup,
   TextField,
-  Typography,Box
+  Typography,
+  Box,
 } from "@mui/material";
 // import "./HomePage.css";
 import React, { useState, useEffect } from "react";
 import { inWords } from "../../utils";
 import { NumericFormat } from "react-number-format";
-import appLogo from '../../assets/android/android-launchericon-48-48.png';
+import appLogo from "../../assets/android/android-launchericon-512-512.png";
+import styled from "@emotion/styled";
+import { indigo } from "@mui/material/colors";
+
+const BpIcon = styled("span")(({ theme }) => ({
+  borderRadius: "50%",
+  width: 20,
+  height: 20,
+  border: `2px solid ${theme.palette.primary.main}`,
+  backgroundColor: "#fff",
+}));
+
+const BpCheckedIcon = styled(BpIcon)(({ theme }) => ({
+  border: `2px solid ${theme.palette.primary.main}`,
+  "&:before": {
+    content: '""',
+    display: "block",
+    width: 12,
+    height: 12,
+    background: theme.palette.primary.main,
+    borderRadius: "16px",
+    position: "absolute",
+    top: "15px",
+    left: "15px",
+  },
+}));
 
 const HomePage = () => {
   // const [paymentMode, setPaymentMode] = useState("");
@@ -22,20 +48,19 @@ const HomePage = () => {
   const [fullName, setFullName] = useState("");
   const [totalAmount, setTotalAmount] = useState(null);
   const [paymentMethod, setPaymentMethod] = React.useState("Cash");
+  const [amountDetails, setAmountDetails] = React.useState({
+    subscriptionFee: null,
+    groupWeddingFee: null,
+    forCasteDinner: null,
+    forHappyMarriage: null,
+    councilFees: null,
+    education: null,
+    donation: null,
+  });
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
   };
-  // const [formData, setFormData] = useState({
-  //   customerName: "",
-  //   lillah: null,
-  //   hadiya: null,
-  //   donation: null,
-  //   paymentType: "online",
-  //   additionalFields: [],
-  // });
-  // const [showModal, setShowModal] = useState(false);
-  // const [newPaymentType, setNewPaymentType] = useState("");
 
   useEffect(() => {
     // Update current date and time every second
@@ -47,106 +72,62 @@ const HomePage = () => {
     return () => clearInterval(intervalId);
   }, []);
 
-  const handleRadioButton = (event) => {
-    setPaymentMode(event.target.id);
-    setFormData((prevData) => ({ ...prevData, paymentType: event.target.id }));
-  };
-
-  const handleInputChange = (field, value) => {
-    setFormData((prevData) => ({ ...prevData, [field]: value }));
-  };
-
-  const handleAdditionalFieldChange = (index, value) => {
-    const updatedAdditionalFields = [...formData.additionalFields];
-    updatedAdditionalFields[index].amount = value;
-    setFormData((prevData) => ({
-      ...prevData,
-      additionalFields: updatedAdditionalFields,
-    }));
-  };
-
-  const handleSelectChange = (index, selectedValue) => {
-    const updatedAdditionalFields = [...formData.additionalFields];
-    updatedAdditionalFields[index].type = selectedValue;
-    setFormData((prevData) => ({
-      ...prevData,
-      additionalFields: updatedAdditionalFields,
-    }));
-  };
-
-  const handleAddPaymentType = () => {
-    if (newPaymentType) {
-      setFormData((prevData) => ({
-        ...prevData,
-        additionalFields: [
-          ...prevData.additionalFields,
-          { type: newPaymentType, amount: 0 },
-        ],
-      }));
-      setNewPaymentType("");
-      setShowModal(false);
-    }
-  };
-
-  // const handlePrint = () => {
-  //   const element = document.getElementById("pdf-container");
-
-  //   // Configure html2pdf options
-  //   const options = {
-  //     margin: 10,
-  //     filename: "document.pdf",
-  //     image: { type: "jpeg", quality: 0.98 },
-  //     html2canvas: { scale: 2 },
-  //     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-  //   };
-
-  //   // Generate PDF
-  //   html2pdf().from(element).set(options).outputPdf();
-  // };
-
   const handleFullNameChange = (event) => {
     setFullName(event.target.value);
   };
-
-  const handleTotalAmountChange = (event) => {
-    const newValue = event.target.value
-      .replace(/,/g, "")
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-    setTotalAmount(newValue);
+  const handleAmountDetailsChange = (amountFieldName, value) => {
+    setAmountDetails({
+      ...amountDetails,
+      [amountFieldName]: value ? Number(value) : null,
+    });
   };
 
-  console.log(fullName, totalAmount, "fullName");
+  console.log(fullName, totalAmount, paymentMethod, amountDetails, "fullName");
+
   return (
     <div
       style={{
         maxWidth: "425px",
         margin: "auto",
         position: "relative",
-        height: "100vh",
         fontFamily: "Montserrat",
-        padding: "20px",
+        paddingInline: "20px",
       }}
     >
-      <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center', gap: "16px"}}><img src={appLogo} height="48px"/>   
-      <Typography
-        textAlign={"center"}
+      <Box
         sx={{
-          paddingBlock: "20px",
-          fontFamily: "Montserrat",
-          fontWeight: "bold",
-          fontSize: "28px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "16px",
           color: "#1f4373",
+          position: "sticky",
+          top: "0",
+          background: "white",
+          zIndex: "5",
+          boxShadow: "0 8px 6px -6px #e0e4e9",
         }}
       >
-        Invoice Generator
-      </Typography>
-
-           
-        </Box>
-      <Divider sx={{ borderColor: "#1f4373" }} />
+        <img src={appLogo} height="48px" />
+        <Typography
+          textAlign={"center"}
+          sx={{
+            paddingBlock: "20px",
+            fontFamily: "Montserrat",
+            fontWeight: "bold",
+            fontSize: "28px",
+            "@media (max-width: 368px)": {
+              fontSize: "22px",
+            },
+          }}
+        >
+          Invoice Generator
+        </Typography>
+      </Box>
+      {/* <Divider sx={{ borderColor: "#1f4373" }} /> */}
       <Typography
         sx={{
-          paddingBlock: "30px 20px",
+          paddingBlock: "40px 10px",
           fontFamily: "Montserrat",
           fontWeight: "bold",
           fontSize: "20px",
@@ -155,62 +136,224 @@ const HomePage = () => {
       >
         Basic Details
       </Typography>
-      <TextField
-        sx={{ width: "100%" }}
-        label="Full Name"
-        variant="standard"
-        value={fullName}
-        onChange={handleFullNameChange}
-      />
+      <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+        <TextField
+          sx={{ width: "100%" }}
+          label="Full Name"
+          variant="standard"
+          value={fullName}
+          onChange={handleFullNameChange}
+        />
 
-      <NumericFormat
-        label="Total Amount in INR"
-        value={totalAmount}
-        customInput={TextField}
-        variant="standard"
-        sx={{ width: "100%" }}
-        allowNegative={false}
-        thousandSeparator
-        placeholder="0"
-        onValueChange={({ value }) => setTotalAmount(Number(value))}
-      />
-      <FormLabel>Total Amount In words:</FormLabel>
-      <Typography>{totalAmount ? inWords(totalAmount) : ""}</Typography>
-
-      <FormControl>
-        <FormLabel id="demo-form-control-label-placement">
-          Payment Method
-        </FormLabel>
-        <RadioGroup
-          row
-          aria-labelledby="demo-form-control-label-placement"
-          name="paymentMethod"
-          value={paymentMethod}
-          onChange={handlePaymentMethodChange}
+        <NumericFormat
+          label="Total Amount"
+          value={totalAmount}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={({ value }) =>
+            value ? setTotalAmount(Number(value)) : setTotalAmount(value)
+          }
+        />
+        <Box sx={{ paddingBlock: "16px 0" }}>
+          <FormLabel>Total Amount In words:</FormLabel>
+          <Typography
+            sx={{
+              paddingBlock: "5px 0",
+              fontFamily: "Montserrat",
+              fontWeight: "bold",
+              fontSize: "16px",
+              color: indigo[800],
+            }}
+          >
+            {totalAmount ? inWords(totalAmount) : " --"}
+          </Typography>
+        </Box>
+        <Box
+          sx={{ paddingBlock: "0px 20px", position: "relative", left: "5px" }}
         >
-          <FormControlLabel
-            value="Cash"
-            control={<Radio />}
-            label="Cash"
-            labelPlacement="end"
-          />
+          <FormControl>
+            <FormLabel
+              sx={{ paddingBlock: "16px 5px" }}
+              id="demo-form-control-label-placement"
+            >
+              Payment Method
+            </FormLabel>
+            <RadioGroup
+              row
+              sx={{ gap: "16px" }}
+              aria-labelledby="demo-form-control-label-placement"
+              name="paymentMethod"
+              value={paymentMethod}
+              onChange={handlePaymentMethodChange}
+            >
+              <FormControlLabel
+                value="Cash"
+                control={
+                  <Radio checkedIcon={<BpCheckedIcon />} icon={<BpIcon />} />
+                }
+                label="Cash"
+                labelPlacement="end"
+              />
 
-          <FormControlLabel value="Online" control={<Radio />} label="Online" />
-        </RadioGroup>
-      </FormControl>
-      <Divider />
-      <Typography>Amount Details</Typography>
-      <Button
-        variant="contained"
+              <FormControlLabel
+                value="Online"
+                control={
+                  <Radio checkedIcon={<BpCheckedIcon />} icon={<BpIcon />} />
+                }
+                label="Online"
+              />
+            </RadioGroup>
+          </FormControl>
+        </Box>
+      </Box>
+      <Divider sx={{ borderColor: "#1f4373" }} />
+      <Typography
         sx={{
-          textTransform: "none",
-          position: "fixed",
-          bottom: "0",
-          left: "0",
+          paddingBlock: "20px",
+          fontFamily: "Montserrat",
+          fontWeight: "bold",
+          fontSize: "20px",
+          color: "#1f4373",
         }}
       >
-        Generate Invoice
-      </Button>
+        Amount Details
+      </Typography>
+
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "16px",
+          marginBottom: "40px",
+        }}
+      >
+        <NumericFormat
+          label="Subscription fee"
+          value={amountDetails.subscriptionFee}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={(value) => {
+            handleAmountDetailsChange("subscriptionFee", value);
+          }}
+        />
+        <NumericFormat
+          label="Group wedding fee"
+          value={amountDetails.groupWeddingFee}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={(value) => {
+            handleAmountDetailsChange("groupWeddingFee", value);
+          }}
+        />
+        <NumericFormat
+          label="For caste-dinner"
+          value={amountDetails.forCasteDinner}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={(value) => {
+            handleAmountDetailsChange("forCasteDinner", value);
+          }}
+        />
+        <NumericFormat
+          label="For happy marriage"
+          value={amountDetails.forHappyMarriage}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={(value) => {
+            handleAmountDetailsChange("forHappyMarriage", value);
+          }}
+        />
+        <NumericFormat
+          label="Council fees"
+          value={amountDetails.councilFees}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={(value) => {
+            handleAmountDetailsChange("councilFees", value);
+          }}
+        />
+        <NumericFormat
+          label="Education"
+          value={amountDetails.education}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={(value) => {
+            handleAmountDetailsChange("education", value);
+          }}
+        />
+        <NumericFormat
+          label="Donation"
+          value={amountDetails.donation}
+          customInput={TextField}
+          variant="standard"
+          sx={{ width: "100%" }}
+          allowNegative={false}
+          thousandSeparator
+          onValueChange={(value) => {
+            handleAmountDetailsChange("donation", value);
+          }}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "16px",
+          color: "#1f4373",
+          position: "sticky",
+          bottom: "0",
+          background: "white",
+          zIndex: "5",
+          boxShadow: "0 -8px 6px -6px #e0e4e9",
+        }}
+      >
+        <Button
+          variant="contained"
+          size="small"
+          sx={{
+            fontFamily: "Montserrat",
+            fontWeight: "bold",
+            fontSize: "16px",
+            textTransform: "none",
+          }}
+        >
+          Generate Invoice
+        </Button>
+      </Box>
+
+      {/* <Button
+          variant="contained"
+          sx={{
+            textTransform: "none",
+            position: "fixed",
+            bottom: "0",
+          }}
+        >
+          Generate Invoice
+        </Button> */}
     </div>
 
     // <div className="HomePageMainDiv">
