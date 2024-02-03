@@ -73,6 +73,10 @@ const HomePage = () => {
   const [eSignModelOpen, setESignModelOpen] = useState(false);
   const [eSign, setEsign] = React.useState("");
   const [eSignError, setEsignError] = useState(false);
+  const [generatorData, setGeneratorData] = useState({
+    generatorName: "",
+    generatorMobile: "",
+  });
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
@@ -184,7 +188,12 @@ const HomePage = () => {
   }, [amountDetails, totalAmount]);
 
   function numberWithCommas(x) {
-    return x.toFixed(2).toLocaleString("en-IN");
+    return x.toLocaleString("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
+    });
   }
 
   const getAmountDetailsCalculation = () => {
@@ -196,7 +205,7 @@ const HomePage = () => {
       return accumulator;
     }, 0);
     if (sum) {
-      return `₹ ${numberWithCommas(sum)}/-`;
+      return `${numberWithCommas(sum)}/-`;
     }
     return "--";
   };
@@ -208,7 +217,7 @@ const HomePage = () => {
     const capture = receiptRef.current;
 
     html2canvas(capture, {
-      scale: 4,
+      scale: 3,
     }).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({
@@ -222,6 +231,10 @@ const HomePage = () => {
       setESignModelOpen(false);
       setEsignError(false);
       setEsign("");
+      setGeneratorData({
+        generatorMobile: "",
+        generatorName: "",
+      });
     });
   };
 
@@ -252,14 +265,18 @@ const HomePage = () => {
     });
 
     if (invoiceGenerator) {
-      userData.generatorName = invoiceGenerator.name;
-      userData.generatorMobile = invoiceGenerator.mobile;
+      setGeneratorData({
+        generatorMobile: invoiceGenerator.mobile,
+        generatorName: invoiceGenerator.name,
+      });
       setTimeout(() => {
         downloadPDF();
       }, 500);
     } else {
-      delete userData.generatorName;
-      delete userData.generatorMobile;
+      setGeneratorData({
+        generatorMobile: "",
+        generatorName: "",
+      });
       setEsignError(true);
     }
   };
@@ -424,7 +441,7 @@ const HomePage = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: "16px",
-                marginBottom: "40px",
+                marginBottom: "90px",
               }}
             >
               <NumericFormat
@@ -555,11 +572,14 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "sticky",
+                position: "fixed",
                 bottom: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
+                left: "0",
+                width: "100%",
+                paddingInline: "0",
               }}
             >
               <Button
@@ -570,10 +590,8 @@ const HomePage = () => {
                   fontFamily: "Montserrat",
                   fontWeight: "bold",
                   fontSize: "16px",
-                  position: "sticky",
-                  bottom: "0",
                   textTransform: "none",
-                  width: "100%",
+                  width: "calc(100vw - 32px)",
                 }}
                 onClick={handleSubmitStep1}
               >
@@ -659,7 +677,7 @@ const HomePage = () => {
                   color: "#333",
                 }}
               >
-                {`₹ ${numberWithCommas(totalAmount)}/-`}
+                {`${numberWithCommas(totalAmount)}/-`}
               </Typography>
             </Box>
             <Box sx={{ marginBottom: "16px" }}>
@@ -699,7 +717,7 @@ const HomePage = () => {
               Amount Details:
             </Typography>
 
-            <Box>
+            <Box sx={{ paddingBottom: "70px" }}>
               {amountDetails.subscriptionFee ? (
                 <Box
                   sx={{
@@ -729,7 +747,7 @@ const HomePage = () => {
                     }}
                   >
                     {amountDetails.subscriptionFee
-                      ? `₹ ${numberWithCommas(amountDetails.subscriptionFee)}/-`
+                      ? `${numberWithCommas(amountDetails.subscriptionFee)}/-`
                       : "--"}
                   </Typography>
                 </Box>
@@ -765,7 +783,7 @@ const HomePage = () => {
                     }}
                   >
                     {amountDetails.groupWeddingFee
-                      ? `₹ ${numberWithCommas(amountDetails.groupWeddingFee)}/-`
+                      ? `${numberWithCommas(amountDetails.groupWeddingFee)}/-`
                       : "--"}
                   </Typography>
                 </Box>
@@ -801,7 +819,7 @@ const HomePage = () => {
                     }}
                   >
                     {amountDetails.forCasteDinner
-                      ? `₹ ${numberWithCommas(amountDetails.forCasteDinner)}/-`
+                      ? `${numberWithCommas(amountDetails.forCasteDinner)}/-`
                       : "--"}
                   </Typography>
                 </Box>
@@ -837,7 +855,7 @@ const HomePage = () => {
                     }}
                   >
                     {amountDetails.forHappyMarriage
-                      ? `₹ ${numberWithCommas(amountDetails.forHappyMarriage)}/-`
+                      ? `${numberWithCommas(amountDetails.forHappyMarriage)}/-`
                       : "--"}
                   </Typography>
                 </Box>
@@ -874,7 +892,7 @@ const HomePage = () => {
                   >
                     {" "}
                     {amountDetails.councilFees
-                      ? `₹ ${numberWithCommas(amountDetails.councilFees)}/-`
+                      ? `${numberWithCommas(amountDetails.councilFees)}/-`
                       : "--"}
                   </Typography>
                 </Box>
@@ -910,7 +928,7 @@ const HomePage = () => {
                     }}
                   >
                     {amountDetails.education
-                      ? `₹ ${numberWithCommas(amountDetails.education)}/-`
+                      ? `${numberWithCommas(amountDetails.education)}/-`
                       : "--"}
                   </Typography>
                 </Box>
@@ -946,7 +964,7 @@ const HomePage = () => {
                     }}
                   >
                     {amountDetails.donation
-                      ? `₹ ${numberWithCommas(amountDetails.donation)}/-`
+                      ? `${numberWithCommas(amountDetails.donation)}/-`
                       : "--"}
                   </Typography>
                 </Box>
@@ -961,11 +979,14 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "sticky",
+                position: "fixed",
                 bottom: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
+                left: "0",
+                width: "100%",
+                paddingInline: "0",
               }}
             >
               <LoadingButton
@@ -976,7 +997,7 @@ const HomePage = () => {
                   fontWeight: "bold",
                   fontSize: "16px",
                   textTransform: "none",
-                  width: "100%",
+                  width: "calc(100vw - 32px)",
                 }}
                 onClick={() => {
                   setESignModelOpen(true);
@@ -1010,7 +1031,7 @@ const HomePage = () => {
             top: "0",
           }}
         >
-          <InvoiceHtml userData={userData} />
+          <InvoiceHtml userData={userData} generatorData={generatorData} />
         </div>
       </div>
     </>
