@@ -24,7 +24,7 @@ const InvoiceHtml = ({ userData }) => {
   }
 
   return (
-    <>
+    <div style={{ fontFamily: "Times New Roman" }}>
       <div className="page-container actual-receipt">
         Page
         <span className="page"></span>
@@ -143,7 +143,7 @@ const InvoiceHtml = ({ userData }) => {
           <span>Thank you!</span>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
