@@ -12,7 +12,6 @@ import {
   Alert,
   IconButton,
 } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import React, { useState, useEffect, useRef } from "react";
 import { inWords } from "../../utils";
@@ -24,6 +23,7 @@ import InvoiceHtml from "../invoice/invoice";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import EsignModel from "../../components/eSignModel/eSignModel";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 const BpIcon = styled("span")(({ theme }) => ({
   borderRadius: "50%",
@@ -424,7 +424,7 @@ const HomePage = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: "16px",
-                marginBottom: "90px",
+                marginBottom: "40px",
               }}
             >
               <NumericFormat
@@ -555,10 +555,8 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "fixed",
+                position: "sticky",
                 bottom: "0",
-                width: "calc(100vw - 32px)",
-                right: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
@@ -599,7 +597,7 @@ const HomePage = () => {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <IconButton
-                sx={{ backgroundColor: "#1f4373", padding: "4px" }}
+                sx={{ backgroundColor: "#1f4373" }}
                 onClick={() => {
                   setCurrentStep(1);
                 }}
@@ -701,7 +699,7 @@ const HomePage = () => {
               Amount Details:
             </Typography>
 
-            <Box sx={{ marginBottom: "68px" }}>
+            <Box>
               {amountDetails.subscriptionFee ? (
                 <Box
                   sx={{
@@ -963,10 +961,8 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "fixed",
+                position: "sticky",
                 bottom: "0",
-                width: "calc(100vw - 32px)",
-                right: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
