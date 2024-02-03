@@ -13,12 +13,13 @@ import {
   Alert,
 } from "@mui/material";
 // import "./HomePage.css";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { inWords } from "../../utils";
 import { NumericFormat } from "react-number-format";
 import appLogo from "../../assets/android/android-launchericon-512-512.png";
 import styled from "@emotion/styled";
 import { indigo } from "@mui/material/colors";
+import InvoiceHtml from "../invoice/invoice";
 
 const BpIcon = styled("span")(({ theme }) => ({
   borderRadius: "50%",
@@ -67,6 +68,37 @@ const HomePage = () => {
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
+  };
+
+  const [loader, setLoader] = useState(false);
+  const receiptRef = useRef(null);
+
+  const downloadPDF = () => {
+    const capture = receiptRef.current;
+    setLoader(true);
+    // html2canvas(capture).then((canvas) => {
+    //   const imgData = canvas.toDataURL("img/jpeg");
+    //   const doc = new jsPDF("p", "mm", "a4");
+    //   const componentWidth = doc.internal.pageSize.getWidth();
+    //   const componentHeight = doc.internal.pageSize.getHeight();
+    //   doc.addImage(canvas, "JPEG", 0, 0);
+    //   setLoader(false);
+    //   doc.save("receipt.pdf");
+    //   center: true;
+    // });
+
+    html2canvas(capture, {
+      scale: 4,
+    }).then((canvas) => {
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+      pdf.addImage(canvas, "PNG", 15, 0, 175, 250);
+      pdf.save("centered-document.pdf");
+    });
   };
 
   useEffect(() => {
@@ -190,306 +222,322 @@ const HomePage = () => {
   };
 
   return (
-    <div
-      style={{
-        maxWidth: "425px",
-        margin: "auto",
-        position: "relative",
-        fontFamily: "Montserrat",
-        paddingInline: "20px",
-      }}
-    >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "16px",
-          color: "#1f4373",
-          position: "sticky",
-          top: "0",
-          background: "white",
-          zIndex: "5",
-          boxShadow: "0 8px 6px -6px #e0e4e9",
+    <>
+      <div
+        style={{
+          maxWidth: "425px",
+          margin: "auto",
+          position: "relative",
+          fontFamily: "Montserrat",
+          paddingInline: "20px",
         }}
       >
-        <img src={appLogo} height="48px" />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "16px",
+            color: "#1f4373",
+            position: "sticky",
+            top: "0",
+            background: "white",
+            zIndex: "5",
+            boxShadow: "0 8px 6px -6px #e0e4e9",
+          }}
+        >
+          <img src={appLogo} height="48px" />
+          <Typography
+            textAlign={"center"}
+            sx={{
+              paddingBlock: "20px",
+              fontFamily: "Montserrat",
+              fontWeight: "bold",
+              fontSize: "28px",
+              "@media (max-width: 368px)": {
+                fontSize: "22px",
+              },
+            }}
+          >
+            Invoice Generator
+          </Typography>
+        </Box>
+        {/* <Divider sx={{ borderColor: "#1f4373" }} /> */}
         <Typography
-          textAlign={"center"}
+          sx={{
+            paddingBlock: "40px 10px",
+            fontFamily: "Montserrat",
+            fontWeight: "bold",
+            fontSize: "20px",
+            color: "#1f4373",
+          }}
+        >
+          Basic Details
+        </Typography>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <TextField
+            sx={{ width: "100%" }}
+            label="Full Name"
+            variant="standard"
+            value={fullName}
+            onChange={handleFullNameChange}
+            error={fullNameError}
+            helperText={fullNameError ? "Full Name is required" : ""}
+          />
+
+          <NumericFormat
+            label="Total Amount"
+            value={totalAmount}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={handleTotalAmountChange}
+            inputProps={{ inputMode: "numeric" }}
+            error={totalAmountError}
+            helperText={totalAmountError ? "Total Amount is required" : ""}
+          />
+          <Box sx={{ paddingBlock: "16px 0" }}>
+            <FormLabel>Total Amount In words:</FormLabel>
+            <Typography
+              sx={{
+                paddingBlock: "5px 0",
+                fontFamily: "Montserrat",
+                fontWeight: "bold",
+                fontSize: "16px",
+                color: indigo[800],
+              }}
+            >
+              {totalAmount ? inWords(totalAmount) : " --"}
+            </Typography>
+          </Box>
+          <Box
+            sx={{ paddingBlock: "0px 20px", position: "relative", left: "5px" }}
+          >
+            <FormControl>
+              <FormLabel
+                sx={{ paddingBlock: "16px 5px" }}
+                id="demo-form-control-label-placement"
+              >
+                Payment Method
+              </FormLabel>
+              <RadioGroup
+                row
+                sx={{ gap: "16px" }}
+                aria-labelledby="demo-form-control-label-placement"
+                name="paymentMethod"
+                value={paymentMethod}
+                onChange={handlePaymentMethodChange}
+              >
+                <FormControlLabel
+                  value="Cash"
+                  control={
+                    <Radio checkedIcon={<BpCheckedIcon />} icon={<BpIcon />} />
+                  }
+                  label="Cash"
+                  labelPlacement="end"
+                />
+
+                <FormControlLabel
+                  value="Online"
+                  control={
+                    <Radio checkedIcon={<BpCheckedIcon />} icon={<BpIcon />} />
+                  }
+                  label="Online"
+                />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+        </Box>
+        <Divider sx={{ borderColor: "#1f4373" }} />
+        <Typography
           sx={{
             paddingBlock: "20px",
             fontFamily: "Montserrat",
             fontWeight: "bold",
-            fontSize: "28px",
-            "@media (max-width: 368px)": {
-              fontSize: "22px",
-            },
+            fontSize: "20px",
+            color: "#1f4373",
           }}
         >
-          Invoice Generator
+          Amount Details
         </Typography>
-      </Box>
-      {/* <Divider sx={{ borderColor: "#1f4373" }} /> */}
-      <Typography
-        sx={{
-          paddingBlock: "40px 10px",
-          fontFamily: "Montserrat",
-          fontWeight: "bold",
-          fontSize: "20px",
-          color: "#1f4373",
-        }}
-      >
-        Basic Details
-      </Typography>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-        <TextField
-          sx={{ width: "100%" }}
-          label="Full Name"
-          variant="standard"
-          value={fullName}
-          onChange={handleFullNameChange}
-          error={fullNameError}
-          helperText={fullNameError ? "Full Name is required" : ""}
-        />
 
-        <NumericFormat
-          label="Total Amount"
-          value={totalAmount}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={handleTotalAmountChange}
-          inputProps={{ inputMode: "numeric" }}
-          error={totalAmountError}
-          helperText={totalAmountError ? "Total Amount is required" : ""}
-        />
-        <Box sx={{ paddingBlock: "16px 0" }}>
-          <FormLabel>Total Amount In words:</FormLabel>
-          <Typography
-            sx={{
-              paddingBlock: "5px 0",
-              fontFamily: "Montserrat",
-              fontWeight: "bold",
-              fontSize: "16px",
-              color: indigo[800],
-            }}
-          >
-            {totalAmount ? inWords(totalAmount) : " --"}
-          </Typography>
-        </Box>
         <Box
-          sx={{ paddingBlock: "0px 20px", position: "relative", left: "5px" }}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "16px",
+            marginBottom: "40px",
+          }}
         >
-          <FormControl>
-            <FormLabel
-              sx={{ paddingBlock: "16px 5px" }}
-              id="demo-form-control-label-placement"
+          <NumericFormat
+            label="Subscription fee"
+            value={amountDetails.subscriptionFee}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={(value) => {
+              handleAmountDetailsChange("subscriptionFee", value);
+            }}
+            inputProps={{ inputMode: "numeric" }}
+          />
+          <NumericFormat
+            label="Group wedding fee"
+            value={amountDetails.groupWeddingFee}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={(value) => {
+              handleAmountDetailsChange("groupWeddingFee", value);
+            }}
+            inputProps={{ inputMode: "numeric" }}
+          />
+          <NumericFormat
+            label="For caste-dinner"
+            value={amountDetails.forCasteDinner}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={(value) => {
+              handleAmountDetailsChange("forCasteDinner", value);
+            }}
+            inputProps={{ inputMode: "numeric" }}
+          />
+          <NumericFormat
+            label="For happy marriage"
+            value={amountDetails.forHappyMarriage}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={(value) => {
+              handleAmountDetailsChange("forHappyMarriage", value);
+            }}
+            inputProps={{ inputMode: "numeric" }}
+          />
+          <NumericFormat
+            label="Council fees"
+            value={amountDetails.councilFees}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={(value) => {
+              handleAmountDetailsChange("councilFees", value);
+            }}
+            inputProps={{ inputMode: "numeric" }}
+          />
+          <NumericFormat
+            label="Education"
+            value={amountDetails.education}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={(value) => {
+              handleAmountDetailsChange("education", value);
+            }}
+            inputProps={{ inputMode: "numeric" }}
+          />
+          <NumericFormat
+            label="Donation"
+            value={amountDetails.donation}
+            customInput={TextField}
+            variant="standard"
+            sx={{ width: "100%" }}
+            allowNegative={false}
+            thousandSeparator
+            thousandsGroupStyle="lakh"
+            onValueChange={(value) => {
+              handleAmountDetailsChange("donation", value);
+            }}
+            inputProps={{ inputMode: "numeric" }}
+          />
+          <Box sx={{ paddingBlock: "16px 0" }}>
+            <FormLabel>Amount details calculation:</FormLabel>
+            <Typography
+              sx={{
+                paddingBlock: "5px 0",
+                fontFamily: "Montserrat",
+                fontWeight: "bold",
+                fontSize: "16px",
+                color: indigo[800],
+              }}
             >
-              Payment Method
-            </FormLabel>
-            <RadioGroup
-              row
-              sx={{ gap: "16px" }}
-              aria-labelledby="demo-form-control-label-placement"
-              name="paymentMethod"
-              value={paymentMethod}
-              onChange={handlePaymentMethodChange}
-            >
-              <FormControlLabel
-                value="Cash"
-                control={
-                  <Radio checkedIcon={<BpCheckedIcon />} icon={<BpIcon />} />
-                }
-                label="Cash"
-                labelPlacement="end"
-              />
-
-              <FormControlLabel
-                value="Online"
-                control={
-                  <Radio checkedIcon={<BpCheckedIcon />} icon={<BpIcon />} />
-                }
-                label="Online"
-              />
-            </RadioGroup>
-          </FormControl>
+              {getAmountDetailsCalculation()}
+            </Typography>
+          </Box>
+          {amountDetailsError.notificationType && (
+            <Alert severity={amountDetailsError.notificationType}>
+              {amountDetailsError.notificationType
+                ? amountDetailsError.message
+                : ""}
+            </Alert>
+          )}
         </Box>
-      </Box>
-      <Divider sx={{ borderColor: "#1f4373" }} />
-      <Typography
-        sx={{
-          paddingBlock: "20px",
-          fontFamily: "Montserrat",
-          fontWeight: "bold",
-          fontSize: "20px",
-          color: "#1f4373",
-        }}
-      >
-        Amount Details
-      </Typography>
 
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          marginBottom: "40px",
-        }}
-      >
-        <NumericFormat
-          label="Subscription fee"
-          value={amountDetails.subscriptionFee}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={(value) => {
-            handleAmountDetailsChange("subscriptionFee", value);
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "16px",
+            color: "#1f4373",
+            position: "sticky",
+            bottom: "0",
+            background: "white",
+            zIndex: "5",
+            boxShadow: "0 -8px 6px -6px #e0e4e9",
           }}
-          inputProps={{ inputMode: "numeric" }}
-        />
-        <NumericFormat
-          label="Group wedding fee"
-          value={amountDetails.groupWeddingFee}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={(value) => {
-            handleAmountDetailsChange("groupWeddingFee", value);
-          }}
-          inputProps={{ inputMode: "numeric" }}
-        />
-        <NumericFormat
-          label="For caste-dinner"
-          value={amountDetails.forCasteDinner}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={(value) => {
-            handleAmountDetailsChange("forCasteDinner", value);
-          }}
-          inputProps={{ inputMode: "numeric" }}
-        />
-        <NumericFormat
-          label="For happy marriage"
-          value={amountDetails.forHappyMarriage}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={(value) => {
-            handleAmountDetailsChange("forHappyMarriage", value);
-          }}
-          inputProps={{ inputMode: "numeric" }}
-        />
-        <NumericFormat
-          label="Council fees"
-          value={amountDetails.councilFees}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={(value) => {
-            handleAmountDetailsChange("councilFees", value);
-          }}
-          inputProps={{ inputMode: "numeric" }}
-        />
-        <NumericFormat
-          label="Education"
-          value={amountDetails.education}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={(value) => {
-            handleAmountDetailsChange("education", value);
-          }}
-          inputProps={{ inputMode: "numeric" }}
-        />
-        <NumericFormat
-          label="Donation"
-          value={amountDetails.donation}
-          customInput={TextField}
-          variant="standard"
-          sx={{ width: "100%" }}
-          allowNegative={false}
-          thousandSeparator
-          thousandsGroupStyle="lakh"
-          onValueChange={(value) => {
-            handleAmountDetailsChange("donation", value);
-          }}
-          inputProps={{ inputMode: "numeric" }}
-        />
-        <Box sx={{ paddingBlock: "16px 0" }}>
-          <FormLabel>Amount details calculation:</FormLabel>
-          <Typography
+        >
+          <Button
+            variant="contained"
+            size="small"
+            disabled={checkGeneratedInvoiceDisabled()}
             sx={{
-              paddingBlock: "5px 0",
               fontFamily: "Montserrat",
               fontWeight: "bold",
               fontSize: "16px",
-              color: indigo[800],
+              textTransform: "none",
             }}
+            onClick={handleGenerateInvoice}
           >
-            {getAmountDetailsCalculation()}
-          </Typography>
+            Generate Invoice
+          </Button>
         </Box>
-        {amountDetailsError.notificationType && (
-          <Alert severity={amountDetailsError.notificationType}>
-            {amountDetailsError.notificationType
-              ? amountDetailsError.message
-              : ""}
-          </Alert>
-        )}
-      </Box>
+      </div>
 
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "16px",
-          color: "#1f4373",
-          position: "sticky",
-          bottom: "0",
-          background: "white",
-          zIndex: "5",
-          boxShadow: "0 -8px 6px -6px #e0e4e9",
+      <div
+        ref={receiptRef}
+        style={{
+          width: "100%",
+          maxWidth: "512px",
+          margin: "auto",
+          position: "relative",
+          fontFamily: "Montserrat",
+          paddingInline: "20px",
         }}
       >
-        <Button
-          variant="contained"
-          size="small"
-          disabled={checkGeneratedInvoiceDisabled()}
-          sx={{
-            fontFamily: "Montserrat",
-            fontWeight: "bold",
-            fontSize: "16px",
-            textTransform: "none",
-          }}
-          onClick={handleGenerateInvoice}
-        >
-          Generate Invoice
-        </Button>
-      </Box>
-    </div>
+        <InvoiceHtml />
+      </div>
+    </>
   );
 };
 
