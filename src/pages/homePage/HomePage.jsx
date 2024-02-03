@@ -72,37 +72,6 @@ const HomePage = () => {
     setPaymentMethod(event.target.value);
   };
 
-  const [loader, setLoader] = useState(false);
-  const receiptRef = useRef(null);
-
-  const downloadPDF = () => {
-    const capture = receiptRef.current;
-    setLoader(true);
-    // html2canvas(capture).then((canvas) => {
-    //   const imgData = canvas.toDataURL("img/jpeg");
-    //   const doc = new jsPDF("p", "mm", "a4");
-    //   const componentWidth = doc.internal.pageSize.getWidth();
-    //   const componentHeight = doc.internal.pageSize.getHeight();
-    //   doc.addImage(canvas, "JPEG", 0, 0);
-    //   setLoader(false);
-    //   doc.save("receipt.pdf");
-    //   center: true;
-    // });
-
-    html2canvas(capture, {
-      scale: 4,
-    }).then((canvas) => {
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-      });
-      pdf.addImage(canvas, "PNG", 15, 0, 175, 250);
-      pdf.save("centered-document.pdf");
-    });
-  };
-
   useEffect(() => {
     // Update current date and time every second
     const intervalId = setInterval(() => {
