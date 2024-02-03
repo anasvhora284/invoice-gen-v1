@@ -7,7 +7,7 @@
   text-align: center;
   justify-content: center;
   align-items: center;
-  margin-bottom: 20px;
+  margin: 16px 0px 50px 0px;
 }
 
 .HeadingText {
@@ -16,6 +16,11 @@
   color: #1f4373;
 }
 
+.footer-thanks {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
 body {
   font-size: 16px;
@@ -48,7 +53,7 @@ table tr td:last-child {
 
 .total {
   font-weight: bold;
-  color: #fb7578;
+  color: #408944;
 }
 
 .logo-container {
@@ -68,7 +73,7 @@ table tr td:last-child {
 }
 
 .line-items-container {
-  margin: 70px 0;
+  margin: 30px 0;
   font-size: 0.875em;
 }
 
@@ -86,16 +91,7 @@ table tr td:last-child {
 }
 
 .line-items-container td {
-  padding: 15px 0;
-}
-
-.line-items-container tbody tr:first-child td {
-  padding-top: 25px;
-}
-
-.line-items-container.has-bottom-border tbody tr:last-child td {
-  padding-bottom: 25px;
-  border-bottom: 2px solid #ddd;
+  padding: 10px 0;
 }
 
 .line-items-container.has-bottom-border {
@@ -115,16 +111,19 @@ table tr td:last-child {
 
 .payment-info {
   width: 38%;
-  font-size: 0.75em;
+  font-size: 1em;
   line-height: 1.5;
 }
 
 .footer {
-  margin-top: 100px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
 }
 
 .footer-thanks {
-  font-size: 1.125em;
+  font-size: 1.25em;
+  margin-bottom: 20px;
 }
 
 .footer-thanks img {
@@ -137,14 +136,20 @@ table tr td:last-child {
 
 .footer-info {
   float: right;
-  margin-top: 5px;
+  margin-bottom: 16px;
   font-size: 0.75em;
   color: #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
 .footer-info span {
   padding: 0 5px;
   color: black;
+  font-size: 1.25em;
+  width: 100%;
 }
 
 .footer-info span:last-child {
