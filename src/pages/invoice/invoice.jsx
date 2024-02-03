@@ -1,8 +1,46 @@
 import "./invoice.css";
+import Logo from "../../assets/SplashScreenLogo.png";
+import HeartIcon from "../../assets/HeartIcon.png";
 
-const InvoiceHtml = () => {
+const InvoiceHtml = ({ userData, generatorData }) => {
+  console.log(generatorData, "userData");
+  const date = userData.currentDate;
+  const formattedDate =
+    date.toString().slice(8, 11) +
+    date.toString().slice(4, 7) +
+    date.toString().slice(10, 15);
+
+  function getTimestampWithMilliseconds() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+    const milliseconds = String(now.getMilliseconds()).padStart(3, "0");
+
+    const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+
+    return timestamp;
+  }
+
+  const paymentDescription = {
+    subscriptionFee: "Subscription Fee",
+    groupWeddingFee: "GroupWedding Fee",
+    forCasteDinner: "For Caste Dinner",
+    forHappyMarriage: "For Happy Marriage",
+    councilFees: "Council Fees",
+    education: "Education",
+    donation: "Donation",
+  };
+
+  function numberWithCommas(x) {
+    return x.toFixed(2).toLocaleString("en-IN");
+  }
+
   return (
-    <>
+    <div style={{ fontFamily: "Times New Roman" }}>
       <div className="page-container actual-receipt">
         Page
         <span className="page"></span>
@@ -10,34 +48,43 @@ const InvoiceHtml = () => {
         <span className="pages"></span>
       </div>
 
-      <div className="logo-container">
-        <img
-          style={{ height: "18px" }}
-          src="https://app.useanvil.com/img/email-logo-black.png"
-          alt="Anvil Logo"
-        />
+      <div
+        className="logo-container"
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img style={{ height: "80px" }} src={Logo} alt="Anvil Logo" />
+      </div>
+      <div className="HeadingTextDiv">
+        <span className="HeadingText">
+          ચરોતર સુન્ની વ્હોરા સુધારક મંડળ (68 અટક)
+        </span>
       </div>
 
       <table className="invoice-info-container">
         <tbody>
           <tr>
             <td rowSpan="2" className="client-name">
-              Client Name
+              {userData.fullName}
             </td>
-            <td>Anvil Co</td>
+            <td className="AddressField">સાંસ્કૃતિક હોલ,</td>
           </tr>
           <tr>
-            <td>123 Main Street</td>
+            <td className="AddressField">પોલશન ડેરી રોડ, આણંદ</td>
           </tr>
           <tr>
             <td>
-              Invoice Date: <strong>May 24th, 2024</strong>
+              Invoice Date: <strong>{formattedDate}</strong>
             </td>
-            <td>San Francisco CA, 94103</td>
+            <td className="AddressField">ગુજરાત, 387130</td>
           </tr>
           <tr>
             <td>
-              Invoice No: <strong>12345</strong>
+              Invoice No: <strong>{getTimestampWithMilliseconds()}</strong>
             </td>
             <td>hello@useanvil.com</td>
           </tr>
@@ -47,72 +94,73 @@ const InvoiceHtml = () => {
       <table className="line-items-container">
         <thead>
           <tr>
-            <th className="heading-quantity">Qty</th>
-            <th className="heading-description">Description</th>
-            <th className="heading-price">Price</th>
-            <th className="heading-subtotal">Subtotal</th>
+            <th className="heading-quantity">Sr.</th>
+            <th className="heading-description">Payment Description</th>
+            <th className="heading-price">Amount</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>2</td>
-            <td>Blue large widgets</td>
-            <td className="right">$15.00</td>
-            <td className="bold">$30.00</td>
-          </tr>
-          <tr>
-            <td>4</td>
-            <td>Green medium widgets</td>
-            <td className="right">$10.00</td>
-            <td className="bold">$40.00</td>
-          </tr>
-          <tr>
-            <td>5</td>
-            <td>Red small widgets with logo</td>
-            <td className="right">$7.00</td>
-            <td className="bold">$35.00</td>
-          </tr>
+          {Object.entries(userData.amountDetails).map(
+            ([description, amount], index) => (
+              <tr key={index}>
+                <td>{index + 1}</td>
+                <td>{paymentDescription[description]}</td>
+                <td className="right">
+                  {amount > 0 ? `₹${numberWithCommas(amount)}/-` : `--`}
+                </td>
+              </tr>
+            ),
+          )}
         </tbody>
       </table>
 
       <table className="line-items-container has-bottom-border">
         <thead>
           <tr>
-            <th>Payment Info</th>
-            <th>Due By</th>
-            <th>Total Due</th>
+            <th>Payment Menthod</th>
+            <th>Total Amount</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td className="payment-info">
               <div>
-                Account No: <strong>123567744</strong>
-              </div>
-              <div>
-                Routing No: <strong>120000547</strong>
+                <strong>{userData.paymentMethod}</strong>
               </div>
             </td>
-            <td className="large">May 30th, 2024</td>
-            <td className="large total">$105.00</td>
+            <td className="large total">
+              <strong>
+                {userData.totalAmount > 0
+                  ? `₹${numberWithCommas(userData.totalAmount)}/-`
+                  : `--`}
+              </strong>
+            </td>
           </tr>
         </tbody>
       </table>
 
       <div className="footer">
         <div className="footer-info">
-          <span>hello@useanvil.com</span> | <span>555 444 6666</span> |
-          <span>useanvil.com</span>
+          <span>
+            Note: Thank you for your support! This receipt is generated by our
+            computerized system for your convenience!
+          </span>
         </div>
         <div className="footer-thanks">
-          <img
-            src="https://github.com/anvilco/html-pdf-invoice-template/raw/main/img/heart.png"
-            alt="heart"
-          />
           <span>Thank you!</span>
+          <img src={HeartIcon} alt="heart" />
+        </div>
+        <div className="footer-thanks generator-data">
+          <span>Generated by:</span>
+          <span>{generatorData.generatorName || "--"}</span>
+          {generatorData.generatorMobile ? (
+            <span>{`(${generatorData.generatorMobile})`}</span>
+          ) : (
+            "--"
+          )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
