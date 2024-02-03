@@ -2,7 +2,7 @@ import "./invoice.css";
 
 const InvoiceHtml = () => {
   return (
-    <>
+    <div style={{ fontFamily: "Times New Roman" }}>
       <div className="page-container actual-receipt">
         Page
         <span className="page"></span>
@@ -112,7 +112,7 @@ const InvoiceHtml = () => {
           <span>Thank you!</span>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
