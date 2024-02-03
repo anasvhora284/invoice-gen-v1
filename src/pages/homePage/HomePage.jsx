@@ -10,6 +10,7 @@ import {
   TextField,
   Typography,
   Box,
+  Alert,
 } from "@mui/material";
 // import "./HomePage.css";
 import React, { useState, useEffect } from "react";
@@ -57,6 +58,12 @@ const HomePage = () => {
     education: null,
     donation: null,
   });
+  const [fullNameError, setFullNameError] = useState(false);
+  const [totalAmountError, setTotalAmountError] = useState(false);
+  const [amountDetailsError, setAmountDetailsError] = useState({
+    notificationType: "",
+    message: "",
+  });
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
@@ -74,15 +81,113 @@ const HomePage = () => {
 
   const handleFullNameChange = (event) => {
     setFullName(event.target.value);
+    if (event.target.value) {
+      setFullNameError(false);
+    } else {
+      setFullNameError(true);
+    }
   };
-  const handleAmountDetailsChange = (amountFieldName, value) => {
+
+  const handleTotalAmountChange = ({ value }) => {
+    if (value) {
+      setTotalAmount(Number(value));
+      setTotalAmountError(false);
+    } else {
+      setTotalAmount(value);
+      setTotalAmountError(true);
+    }
+  };
+
+  const handleAmountDetailsChange = (amountFieldName, valueObject) => {
+    console.log(valueObject, "value");
     setAmountDetails({
       ...amountDetails,
-      [amountFieldName]: value ? Number(value) : null,
+      [amountFieldName]: valueObject?.value ? Number(valueObject.value) : null,
     });
   };
 
   console.log(fullName, totalAmount, paymentMethod, amountDetails, "fullName");
+
+  const checkGeneratedInvoiceDisabled = () => {
+    return !(
+      fullName &&
+      totalAmount &&
+      amountDetailsError.notificationType === "success"
+    );
+  };
+
+  const handleGenerateInvoice = () => {
+    if (!fullName) {
+      setFullNameError(true);
+    }
+    if (!totalAmount) {
+      setTotalAmountError(true);
+    }
+    if (totalAmount && !Object.values(amountDetails).some(Boolean)) {
+      setAmountDetailsError({
+        notificationType: "error",
+        message: "please fill up atleast one amount Detail",
+      });
+    }
+  };
+
+  useEffect(() => {
+    const amountDetailsValues = Object.values(amountDetails);
+
+    console.log(amountDetailsValues.some(Boolean), "amountDetailsValues");
+
+    if (totalAmount && !amountDetailsValues.some(Boolean)) {
+      setAmountDetailsError({
+        notificationType: "error",
+        message: "please fill up atleast one amount Detail",
+      });
+      return;
+    } else {
+      setAmountDetailsError({
+        notificationType: "",
+        message: "",
+      });
+    }
+
+    const sum = amountDetailsValues.reduce((accumulator, currentValue) => {
+      if (currentValue !== null) {
+        accumulator += currentValue;
+      }
+      return accumulator;
+    }, 0);
+
+    if (totalAmount) {
+      if (sum === totalAmount) {
+        setAmountDetailsError({
+          notificationType: "success",
+          message: "Amount details verified.",
+        });
+      } else {
+        setAmountDetailsError({
+          notificationType: "error",
+          message: "please varify total amount and amount details.",
+        });
+      }
+    }
+  }, [amountDetails, totalAmount]);
+
+  function numberWithCommas(x) {
+    return x.toLocaleString("en-IN");
+  }
+
+  const getAmountDetailsCalculation = () => {
+    const amountDetailsValues = Object.values(amountDetails);
+    const sum = amountDetailsValues.reduce((accumulator, currentValue) => {
+      if (currentValue !== null) {
+        accumulator += currentValue;
+      }
+      return accumulator;
+    }, 0);
+    if (sum) {
+      return `₹ ${numberWithCommas(sum)}/-`;
+    }
+    return "--";
+  };
 
   return (
     <div
@@ -143,6 +248,8 @@ const HomePage = () => {
           variant="standard"
           value={fullName}
           onChange={handleFullNameChange}
+          error={fullNameError}
+          helperText={fullNameError ? "Full Name is required" : ""}
         />
 
         <NumericFormat
@@ -153,9 +260,11 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
-          onValueChange={({ value }) =>
-            value ? setTotalAmount(Number(value)) : setTotalAmount(value)
-          }
+          thousandsGroupStyle="lakh"
+          onValueChange={handleTotalAmountChange}
+          inputProps={{ inputMode: "numeric" }}
+          error={totalAmountError}
+          helperText={totalAmountError ? "Total Amount is required" : ""}
         />
         <Box sx={{ paddingBlock: "16px 0" }}>
           <FormLabel>Total Amount In words:</FormLabel>
@@ -238,9 +347,11 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
+          thousandsGroupStyle="lakh"
           onValueChange={(value) => {
             handleAmountDetailsChange("subscriptionFee", value);
           }}
+          inputProps={{ inputMode: "numeric" }}
         />
         <NumericFormat
           label="Group wedding fee"
@@ -250,9 +361,11 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
+          thousandsGroupStyle="lakh"
           onValueChange={(value) => {
             handleAmountDetailsChange("groupWeddingFee", value);
           }}
+          inputProps={{ inputMode: "numeric" }}
         />
         <NumericFormat
           label="For caste-dinner"
@@ -262,9 +375,11 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
+          thousandsGroupStyle="lakh"
           onValueChange={(value) => {
             handleAmountDetailsChange("forCasteDinner", value);
           }}
+          inputProps={{ inputMode: "numeric" }}
         />
         <NumericFormat
           label="For happy marriage"
@@ -274,9 +389,11 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
+          thousandsGroupStyle="lakh"
           onValueChange={(value) => {
             handleAmountDetailsChange("forHappyMarriage", value);
           }}
+          inputProps={{ inputMode: "numeric" }}
         />
         <NumericFormat
           label="Council fees"
@@ -286,9 +403,11 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
+          thousandsGroupStyle="lakh"
           onValueChange={(value) => {
             handleAmountDetailsChange("councilFees", value);
           }}
+          inputProps={{ inputMode: "numeric" }}
         />
         <NumericFormat
           label="Education"
@@ -298,9 +417,11 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
+          thousandsGroupStyle="lakh"
           onValueChange={(value) => {
             handleAmountDetailsChange("education", value);
           }}
+          inputProps={{ inputMode: "numeric" }}
         />
         <NumericFormat
           label="Donation"
@@ -310,10 +431,33 @@ const HomePage = () => {
           sx={{ width: "100%" }}
           allowNegative={false}
           thousandSeparator
+          thousandsGroupStyle="lakh"
           onValueChange={(value) => {
             handleAmountDetailsChange("donation", value);
           }}
+          inputProps={{ inputMode: "numeric" }}
         />
+        <Box sx={{ paddingBlock: "16px 0" }}>
+          <FormLabel>Amount details calculation:</FormLabel>
+          <Typography
+            sx={{
+              paddingBlock: "5px 0",
+              fontFamily: "Montserrat",
+              fontWeight: "bold",
+              fontSize: "16px",
+              color: indigo[800],
+            }}
+          >
+            {getAmountDetailsCalculation()}
+          </Typography>
+        </Box>
+        {amountDetailsError.notificationType && (
+          <Alert severity={amountDetailsError.notificationType}>
+            {amountDetailsError.notificationType
+              ? amountDetailsError.message
+              : ""}
+          </Alert>
+        )}
       </Box>
 
       <Box
@@ -333,192 +477,19 @@ const HomePage = () => {
         <Button
           variant="contained"
           size="small"
+          disabled={checkGeneratedInvoiceDisabled()}
           sx={{
             fontFamily: "Montserrat",
             fontWeight: "bold",
             fontSize: "16px",
             textTransform: "none",
           }}
+          onClick={handleGenerateInvoice}
         >
           Generate Invoice
         </Button>
       </Box>
-
-      {/* <Button
-          variant="contained"
-          sx={{
-            textTransform: "none",
-            position: "fixed",
-            bottom: "0",
-          }}
-        >
-          Generate Invoice
-        </Button> */}
     </div>
-
-    // <div className="HomePageMainDiv">
-    //   <div className="date">
-    //     <span className="datePart">
-    //       <label htmlFor="">Date:</label> {currentDate.toLocaleDateString()}
-    //     </span>
-    //     <span className="timePart">
-    //       <label htmlFor="">Time:</label> {currentDate.toLocaleTimeString()}
-    //     </span>
-    //   </div>
-    //   <div className="heading">
-    //     <div className="headingText">
-    //       <span>Customer Details</span>
-    //     </div>
-    //   </div>
-    //   <div className="InvoiceForm">
-    //     <div className="inputbox">
-    //       <input
-    //         required
-    //         type="text"
-    //         id="customernameinput"
-    //         value={formData.customerName}
-    //         onChange={(e) => handleInputChange("customerName", e.target.value)}
-    //       />
-    //       <span>Customer Name</span>
-    //       <i></i>
-    //     </div>
-    //     <div className="inputbox">
-    //       <input
-    //         required
-    //         type="number"
-    //         id="lillah"
-    //         value={formData.lillah}
-    //         onChange={(e) => handleInputChange("lillah", e.target.value)}
-    //       />
-    //       <span>Lillah of Rs.</span>
-    //       <i></i>
-    //     </div>
-    //     <div className="inputbox">
-    //       <input
-    //         required
-    //         type="number"
-    //         id="hadiya"
-    //         value={formData.hadiya}
-    //         onChange={(e) => handleInputChange("hadiya", e.target.value)}
-    //       />
-    //       <span>Hadiya of Rs.</span>
-    //       <i></i>
-    //     </div>
-    //     <div className="inputbox">
-    //       <input
-    //         required
-    //         type="number"
-    //         id="donation"
-    //         value={formData.donation}
-    //         onChange={(e) => handleInputChange("donation", e.target.value)}
-    //       />
-    //       <span>Donation of Rs.</span>
-    //       <i></i>
-    //     </div>
-
-    //     {/* Additional Payment Fields */}
-    //     {formData.additionalFields.map((field, index) => (
-    //       <div key={index} className="inputbox">
-    //         <select
-    //           value={field.type}
-    //           onChange={(e) => handleSelectChange(index, e.target.value)}
-    //         >
-    //           <option value="charity">Charity</option>
-    //           <option value="marriageFunds">Marriage Funds</option>
-    //           <option value="helping">Helping</option>
-    //           {/* Add more options as needed */}
-    //         </select>
-    //         <input
-    //           required
-    //           type="number"
-    //           id={`additional-${index}`}
-    //           value={field.amount}
-    //           onChange={(e) =>
-    //             handleAdditionalFieldChange(index, e.target.value)
-    //           }
-    //         />
-    //         <span>{field.type} of Rs.</span>
-    //         <i></i>
-    //       </div>
-    //     ))}
-
-    //     {/* Add Payment Type Button */}
-    //     <div className="addpaymentbtndiv">
-    //       <label class="AddPaymentbtn" for="burger">
-    //         <input
-    //           type="checkbox"
-    //           id="burger"
-    //           onChange={() => setShowModal((prevShowModal) => !prevShowModal)}
-    //         />
-    //         <span></span>
-    //         <span></span>
-    //       </label>
-    //     </div>
-
-    //     {/* Modal for Adding Payment Type */}
-    //     {showModal && (
-    //       <div className="modal">
-    //         <h2>Add Payment Type</h2>
-    //         <div className="modal-content">
-    //           <select
-    //             value={newPaymentType}
-    //             onChange={(e) => setNewPaymentType(e.target.value)}
-    //           >
-    //             <option value="charity">Charity</option>
-    //             <option value="marriageFunds">Marriage Funds</option>
-    //             <option value="helping">Helping</option>
-    //             {/* Add more options as needed */}
-    //           </select>
-    //           <button onClick={handleAddPaymentType}>Add</button>
-    //         </div>
-    //       </div>
-    //     )}
-
-    //     <div className="paymentType">
-    //       <label>
-    //         <input
-    //           name="online"
-    //           type="radio"
-    //           id="online"
-    //           onChange={handleRadioButton}
-    //           checked={paymentMode === "online"}
-    //         />
-    //         Online
-    //       </label>
-    //       <label>
-    //         <input
-    //           name="online"
-    //           type="radio"
-    //           id="cash"
-    //           onChange={handleRadioButton}
-    //           checked={paymentMode === "cash"}
-    //         />
-    //         Cash
-    //       </label>
-    //     </div>
-
-    //     {/* Submit Button */}
-    //     <button className="Submitbtn">
-    //       <div className="svg-wrapper-1">
-    //         <div className="svg-wrapper">
-    //           <svg
-    //             xmlns="http://www.w3.org/2000/svg"
-    //             viewBox="0 0 24 24"
-    //             width="24"
-    //             height="24"
-    //           >
-    //             <path fill="none" d="M0 0h24v24H0z"></path>
-    //             <path
-    //               fill="currentColor"
-    //               d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z"
-    //             ></path>
-    //           </svg>
-    //         </div>
-    //       </div>
-    //       <span>Submit</span>
-    //     </button>
-    //   </div>
-    // </div>
   );
 };
 
