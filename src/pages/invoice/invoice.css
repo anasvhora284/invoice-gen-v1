@@ -2,6 +2,20 @@
   Common invoice styles. These styles will work in a browser or using the HTML
   to PDF anvil endpoint.
 */
+.HeadingTextDiv {
+  display: flex;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.HeadingText {
+  font-size: larger;
+  font-weight: bold;
+  color: #1f4373;
+}
+
 
 body {
   font-size: 16px;
@@ -29,7 +43,7 @@ table tr td:last-child {
 }
 
 .large {
-  font-size: 1.75em;
+  font-size: 1rem;
 }
 
 .total {
@@ -38,7 +52,7 @@ table tr td:last-child {
 }
 
 .logo-container {
-  margin: 20px 0 70px 0;
+  margin: 20px 0 10px 0;
 }
 
 .invoice-info-container {
@@ -49,7 +63,7 @@ table tr td:last-child {
 }
 
 .client-name {
-  font-size: 1rem;
+  font-size: 1.3rem;
   vertical-align: top;
 }
 

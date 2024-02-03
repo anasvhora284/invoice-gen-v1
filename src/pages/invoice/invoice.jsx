@@ -1,6 +1,28 @@
 import "./invoice.css";
+import Logo from "../../assets/SplashScreenLogo.png";
 
-const InvoiceHtml = () => {
+const InvoiceHtml = ({ userData }) => {
+  const date = userData.currentDate;
+  const formattedDate =
+    date.toString().slice(8, 11) +
+    date.toString().slice(4, 7) +
+    date.toString().slice(10, 15);
+
+  function getTimestampWithMilliseconds() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+    const milliseconds = String(now.getMilliseconds()).padStart(3, "0");
+
+    const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+
+    return timestamp;
+  }
+
   return (
     <>
       <div className="page-container actual-receipt">
@@ -10,34 +32,43 @@ const InvoiceHtml = () => {
         <span className="pages"></span>
       </div>
 
-      <div className="logo-container">
-        <img
-          style={{ height: "18px" }}
-          src="https://app.useanvil.com/img/email-logo-black.png"
-          alt="Anvil Logo"
-        />
+      <div
+        className="logo-container"
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img style={{ height: "80px" }} src={Logo} alt="Anvil Logo" />
+      </div>
+      <div className="HeadingTextDiv">
+        <span className="HeadingText">
+          ચરોતર સુન્ની વ્હોરા સુધારક મંડળ (68 અટક)
+        </span>
       </div>
 
       <table className="invoice-info-container">
         <tbody>
           <tr>
             <td rowSpan="2" className="client-name">
-              Client Name
+              {userData.fullName}
             </td>
-            <td>Anvil Co</td>
+            <td className="AddressField">સાંસ્કૃતિક હોલ,</td>
           </tr>
           <tr>
-            <td>123 Main Street</td>
+            <td className="AddressField">પોલશન ડેરી રોડ, આણંદ</td>
           </tr>
           <tr>
             <td>
-              Invoice Date: <strong>May 24th, 2024</strong>
+              Invoice Date: <strong>{formattedDate}</strong>
             </td>
-            <td>San Francisco CA, 94103</td>
+            <td className="AddressField">ગુજરાત, 387130</td>
           </tr>
           <tr>
             <td>
-              Invoice No: <strong>12345</strong>
+              Invoice No: <strong>{getTimestampWithMilliseconds()}</strong>
             </td>
             <td>hello@useanvil.com</td>
           </tr>
