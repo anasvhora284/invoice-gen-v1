@@ -12,7 +12,6 @@ import {
   Alert,
   IconButton,
 } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import React, { useState, useEffect, useRef } from "react";
 import { inWords } from "../../utils";
@@ -23,6 +22,8 @@ import { indigo } from "@mui/material/colors";
 import InvoiceHtml from "../invoice/invoice";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import EsignModel from "../../components/eSignModel/eSignModel";
+import LoadingButton from "@mui/lab/LoadingButton";
 
 const BpIcon = styled("span")(({ theme }) => ({
   borderRadius: "50%",
@@ -69,6 +70,9 @@ const HomePage = () => {
   });
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [eSignModelOpen, setESignModelOpen] = useState(false);
+  const [eSign, setEsign] = React.useState("");
+  const [eSignError, setEsignError] = useState(false);
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
@@ -104,7 +108,6 @@ const HomePage = () => {
   };
 
   const handleAmountDetailsChange = (amountFieldName, valueObject) => {
-    console.log(valueObject, "value");
     setAmountDetails({
       ...amountDetails,
       [amountFieldName]: valueObject?.value ? Number(valueObject.value) : null,
@@ -213,9 +216,12 @@ const HomePage = () => {
         unit: "mm",
         format: "a4",
       });
-      pdf.addImage(canvas, "PNG", 15, 0, 175, 250);
+      pdf.addImage(canvas, "PNG", 15, 20, 175, 250);
       pdf.save("centered-document.pdf");
       setLoading(false);
+      setESignModelOpen(false);
+      setEsignError(false);
+      setEsign("");
     });
   };
 
@@ -227,6 +233,36 @@ const HomePage = () => {
     currentDate,
   };
 
+  const handleSubmitEsign = () => {
+    const envData = import.meta.env.VITE_DATA;
+    const parsedEnvdata = envData.split(",");
+    const dataArrOfObj = [];
+
+    for (let i = 0; i < parsedEnvdata.length; i += 3) {
+      const obj = {
+        name: parsedEnvdata[i].replaceAll("_", " "),
+        mobile: parsedEnvdata[i + 1],
+        key: parsedEnvdata[i + 2].replaceAll("_", " "),
+      };
+      dataArrOfObj.push(obj);
+    }
+
+    const invoiceGenerator = dataArrOfObj.find((data) => {
+      return data.key === eSign;
+    });
+
+    if (invoiceGenerator) {
+      userData.generatorName = invoiceGenerator.name;
+      userData.generatorMobile = invoiceGenerator.mobile;
+      setTimeout(() => {
+        downloadPDF();
+      }, 500);
+    } else {
+      delete userData.generatorName;
+      delete userData.generatorMobile;
+      setEsignError(true);
+    }
+  };
   return (
     <>
       <div
@@ -388,7 +424,7 @@ const HomePage = () => {
                 display: "flex",
                 flexDirection: "column",
                 gap: "16px",
-                marginBottom: "90px",
+                marginBottom: "40px",
               }}
             >
               <NumericFormat
@@ -519,10 +555,8 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "fixed",
+                position: "sticky",
                 bottom: "0",
-                width: "calc(100vw - 32px)",
-                right: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
@@ -563,7 +597,7 @@ const HomePage = () => {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <IconButton
-                sx={{ backgroundColor: "#1f4373", padding: "4px" }}
+                sx={{ backgroundColor: "#1f4373" }}
                 onClick={() => {
                   setCurrentStep(1);
                 }}
@@ -665,7 +699,7 @@ const HomePage = () => {
               Amount Details:
             </Typography>
 
-            <Box sx={{ marginBottom: "68px" }}>
+            <Box>
               {amountDetails.subscriptionFee ? (
                 <Box
                   sx={{
@@ -927,10 +961,8 @@ const HomePage = () => {
                 justifyContent: "center",
                 padding: "16px",
                 color: "#1f4373",
-                position: "fixed",
+                position: "sticky",
                 bottom: "0",
-                width: "calc(100vw - 32px)",
-                right: "0",
                 background: "white",
                 zIndex: "5",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
@@ -939,8 +971,6 @@ const HomePage = () => {
               <LoadingButton
                 variant="contained"
                 size="small"
-                loading={loading}
-                loadingIndicator="generating invoice…"
                 sx={{
                   fontFamily: "Montserrat",
                   fontWeight: "bold",
@@ -948,11 +978,23 @@ const HomePage = () => {
                   textTransform: "none",
                   width: "100%",
                 }}
-                onClick={downloadPDF}
+                onClick={() => {
+                  setESignModelOpen(true);
+                }}
               >
-                Generate Invoice
+                Proceed
               </LoadingButton>
             </Box>
+            <EsignModel
+              open={eSignModelOpen}
+              setOpen={setESignModelOpen}
+              handleSubmit={handleSubmitEsign}
+              setEsignError={setEsignError}
+              eSignError={eSignError}
+              eSign={eSign}
+              setEsign={setEsign}
+              loading={loading}
+            />
           </div>
         ) : (
           <></>
