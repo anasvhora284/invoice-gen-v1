@@ -1284,9 +1284,9 @@ const HomePage = () => {
             width: "512px",
             margin: "auto",
             paddingInline: "20px",
-            // position: "absolute",
-            // zIndex: "-10",
-            // top: "0",
+            position: "absolute",
+            zIndex: "-10",
+            top: "0",
           }}
         >
           <InvoiceHtml userData={userData} generatorData={generatorData} />
