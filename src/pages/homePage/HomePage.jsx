@@ -51,6 +51,8 @@ const BpCheckedIcon = styled(BpIcon)(({ theme }) => ({
 const HomePage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [fullName, setFullName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState(null);
+  const [city, setCity] = useState("");
   const [totalAmount, setTotalAmount] = useState(null);
   const [paymentMethod, setPaymentMethod] = React.useState("Cash");
   const [amountDetails, setAmountDetails] = React.useState({
@@ -61,8 +63,11 @@ const HomePage = () => {
     councilFees: null,
     education: null,
     donation: null,
+    other: null,
   });
   const [fullNameError, setFullNameError] = useState(false);
+  const [mobileNumberError, setMobileNumberError] = useState(false);
+  const [cityError, setCityError] = useState(false);
   const [totalAmountError, setTotalAmountError] = useState(false);
   const [amountDetailsError, setAmountDetailsError] = useState({
     notificationType: "",
@@ -93,11 +98,34 @@ const HomePage = () => {
   }, []);
 
   const handleFullNameChange = (event) => {
-    setFullName(event.target.value);
-    if (event.target.value) {
+    const fullNameInputText = event.target.value;
+    const filteredText = fullNameInputText.replace(/[^a-zA-Z ]/g, "");
+    setFullName(filteredText);
+    if (filteredText) {
       setFullNameError(false);
     } else {
       setFullNameError(true);
+    }
+  };
+
+  const handleMobileNumberChange = ({ value }) => {
+    if (value.length === 10) {
+      setMobileNumber(Number(value));
+      setMobileNumberError(false);
+    } else {
+      setMobileNumber(value);
+      setMobileNumberError(true);
+    }
+  };
+
+  const handleCityChange = (event) => {
+    const cityInputText = event.target.value;
+    const filteredText = cityInputText.replace(/[^a-zA-Z ]/g, "");
+    setCity(filteredText);
+    if (filteredText) {
+      setCityError(false);
+    } else {
+      setCityError(true);
     }
   };
 
@@ -121,6 +149,9 @@ const HomePage = () => {
   const checkGeneratedInvoiceDisabled = () => {
     return !(
       fullName &&
+      mobileNumber &&
+      city &&
+      !(mobileNumber.length > 10 || mobileNumber.length < 10) &&
       totalAmount &&
       amountDetailsError.notificationType === "success"
     );
@@ -129,6 +160,9 @@ const HomePage = () => {
   const handleSubmitStep1 = () => {
     if (!fullName) {
       setFullNameError(true);
+    }
+    if (!mobileNumber) {
+      setMobileNumberError(true);
     }
     if (!totalAmount) {
       setTotalAmountError(true);
@@ -142,6 +176,8 @@ const HomePage = () => {
 
     if (
       fullName &&
+      mobileNumber &&
+      city &&
       totalAmount &&
       amountDetailsError.notificationType === "success"
     ) {
@@ -221,6 +257,7 @@ const HomePage = () => {
       generatorName: "",
     });
     setFullName("");
+    setMobileNumber(null);
     setTotalAmount(null);
     setPaymentMethod("Cash");
     setCurrentStep(1);
@@ -232,6 +269,7 @@ const HomePage = () => {
       councilFees: null,
       education: null,
       donation: null,
+      other: null,
     });
   };
   const downloadPDF = () => {
@@ -255,6 +293,8 @@ const HomePage = () => {
 
   const userData = {
     fullName,
+    mobileNumber,
+    city,
     totalAmount,
     amountDetails,
     paymentMethod,
@@ -306,8 +346,8 @@ const HomePage = () => {
         Invoice_Id: getTimestampWithMilliseconds().Invoice_Id.toString(), // Replace with a function to generate Invoice Id
         TimeStemp: getTimestampWithMilliseconds().timestamp.toString(),
         Full_Name: fullName,
-        Mobile: generatorData.generatorMobile, // Assuming you want to use the generator's mobile
-        City: "Surat", // You may add more fields if needed
+        Mobile: mobileNumber, // Assuming you want to use the generator's mobile
+        City: city, // You may add more fields if needed
         Total_Amount: totalAmount.toString(),
         Payment_Method: paymentMethod,
         Subscription_Fee: amountDetails.subscriptionFee?.toString() || "",
@@ -317,7 +357,7 @@ const HomePage = () => {
         Council_Fees: amountDetails.councilFees?.toString() || "",
         Education: amountDetails.education?.toString() || "",
         Donation: amountDetails.donation?.toString() || "",
-        Other: "Other_Field", // You may add more fields if needed
+        Other: amountDetails.other?.toString() || "", // You may add more fields if needed
         Generated_By: generatorData.generatorName,
       };
 
@@ -430,6 +470,35 @@ const HomePage = () => {
               />
 
               <NumericFormat
+                label="Mobile Number"
+                value={mobileNumber}
+                customInput={TextField}
+                variant="standard"
+                sx={{ width: "100%" }}
+                allowNegative={false}
+                onValueChange={handleMobileNumberChange}
+                inputProps={{ inputMode: "numeric" }}
+                error={mobileNumberError}
+                helperText={
+                  mobileNumberError && !mobileNumber
+                    ? "Mobile Number is required"
+                    : mobileNumberError && mobileNumber
+                    ? "Mobile Number should be 10 digit long"
+                    : ""
+                }
+              />
+
+              <TextField
+                sx={{ width: "100%" }}
+                label="City"
+                variant="standard"
+                value={city}
+                onChange={handleCityChange}
+                error={cityError}
+                helperText={cityError ? "City Name is required" : ""}
+              />
+
+              <NumericFormat
                 label="Total Amount"
                 value={totalAmount}
                 customInput={TextField}
@@ -501,6 +570,17 @@ const HomePage = () => {
                       }
                       label="Online"
                     />
+
+                    <FormControlLabel
+                      value="Cheque"
+                      control={
+                        <Radio
+                          checkedIcon={<BpCheckedIcon />}
+                          icon={<BpIcon />}
+                        />
+                      }
+                      label="Cheque"
+                    />
                   </RadioGroup>
                 </FormControl>
               </Box>
@@ -527,7 +607,7 @@ const HomePage = () => {
               }}
             >
               <NumericFormat
-                label="Subscription fee"
+                label="ઉમેદવારી ફી ના"
                 value={amountDetails.subscriptionFee}
                 customInput={TextField}
                 variant="standard"
@@ -541,7 +621,7 @@ const HomePage = () => {
                 inputProps={{ inputMode: "numeric" }}
               />
               <NumericFormat
-                label="Group wedding fee"
+                label="સમુહ લગ્ન ફી"
                 value={amountDetails.groupWeddingFee}
                 customInput={TextField}
                 variant="standard"
@@ -555,7 +635,7 @@ const HomePage = () => {
                 inputProps={{ inputMode: "numeric" }}
               />
               <NumericFormat
-                label="For caste-dinner"
+                label="જમણવારના"
                 value={amountDetails.forCasteDinner}
                 customInput={TextField}
                 variant="standard"
@@ -569,7 +649,7 @@ const HomePage = () => {
                 inputProps={{ inputMode: "numeric" }}
               />
               <NumericFormat
-                label="For happy marriage"
+                label="લગ્ન ખુશાલીના"
                 value={amountDetails.forHappyMarriage}
                 customInput={TextField}
                 variant="standard"
@@ -583,7 +663,7 @@ const HomePage = () => {
                 inputProps={{ inputMode: "numeric" }}
               />
               <NumericFormat
-                label="Council fees"
+                label="સભાસદ ફી"
                 value={amountDetails.councilFees}
                 customInput={TextField}
                 variant="standard"
@@ -597,7 +677,7 @@ const HomePage = () => {
                 inputProps={{ inputMode: "numeric" }}
               />
               <NumericFormat
-                label="Education"
+                label="એજ્યુકેશન"
                 value={amountDetails.education}
                 customInput={TextField}
                 variant="standard"
@@ -611,7 +691,7 @@ const HomePage = () => {
                 inputProps={{ inputMode: "numeric" }}
               />
               <NumericFormat
-                label="Donation"
+                label="ડોનેશન"
                 value={amountDetails.donation}
                 customInput={TextField}
                 variant="standard"
@@ -621,6 +701,20 @@ const HomePage = () => {
                 thousandsGroupStyle="lakh"
                 onValueChange={(value) => {
                   handleAmountDetailsChange("donation", value);
+                }}
+                inputProps={{ inputMode: "numeric" }}
+              />
+              <NumericFormat
+                label="અન્ય"
+                value={amountDetails.other}
+                customInput={TextField}
+                variant="standard"
+                sx={{ width: "100%" }}
+                allowNegative={false}
+                thousandSeparator
+                thousandsGroupStyle="lakh"
+                onValueChange={(value) => {
+                  handleAmountDetailsChange("other", value);
                 }}
                 inputProps={{ inputMode: "numeric" }}
               />
@@ -737,6 +831,52 @@ const HomePage = () => {
                 }}
               >
                 {fullName}
+              </Typography>
+            </Box>
+            <Box sx={{ marginBottom: "16px" }}>
+              <Typography
+                sx={{
+                  fontFamily: "Montserrat",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  color: "#333",
+                  marginBottom: "5px",
+                }}
+              >
+                Mobile Number:
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Montserrat",
+                  fontWeight: "light",
+                  fontSize: "16px",
+                  color: "#333",
+                }}
+              >
+                {mobileNumber}
+              </Typography>
+            </Box>
+            <Box sx={{ marginBottom: "16px" }}>
+              <Typography
+                sx={{
+                  fontFamily: "Montserrat",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  color: "#333",
+                  marginBottom: "5px",
+                }}
+              >
+                City Name:
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Montserrat",
+                  fontWeight: "light",
+                  fontSize: "16px",
+                  color: "#333",
+                }}
+              >
+                {city}
               </Typography>
             </Box>
             <Box sx={{ marginBottom: "16px" }}>
@@ -1053,6 +1193,42 @@ const HomePage = () => {
               ) : (
                 <></>
               )}
+              {amountDetails.other ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    marginBottom: "16px",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: "Montserrat",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                      color: "#333",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    Other:
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: "Montserrat",
+                      fontWeight: "light",
+                      fontSize: "16px",
+                      color: "#333",
+                      marginBottom: "5px",
+                    }}
+                  >
+                    {amountDetails.other
+                      ? `${numberWithCommas(amountDetails.other)}/-`
+                      : "--"}
+                  </Typography>
+                </Box>
+              ) : (
+                <></>
+              )}
             </Box>
             <Box
               sx={{
@@ -1107,10 +1283,10 @@ const HomePage = () => {
           style={{
             width: "512px",
             margin: "auto",
-            position: "absolute",
             paddingInline: "20px",
-            zIndex: "-10",
-            top: "0",
+            // position: "absolute",
+            // zIndex: "-10",
+            // top: "0",
           }}
         >
           <InvoiceHtml userData={userData} generatorData={generatorData} />
