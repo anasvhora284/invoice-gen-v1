@@ -36,7 +36,12 @@ const InvoiceHtml = ({ userData, generatorData }) => {
   };
 
   function numberWithCommas(x) {
-    return x.toFixed(2).toLocaleString("en-IN");
+    return x.toLocaleString("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
+    });
   }
 
   return (
@@ -106,10 +111,10 @@ const InvoiceHtml = ({ userData, generatorData }) => {
                 <td>{index + 1}</td>
                 <td>{paymentDescription[description]}</td>
                 <td className="right">
-                  {amount > 0 ? `₹${numberWithCommas(amount)}/-` : `--`}
+                  {amount > 0 ? `${numberWithCommas(amount)}/-` : `--`}
                 </td>
               </tr>
-            ),
+            )
           )}
         </tbody>
       </table>
@@ -131,7 +136,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
             <td className="large total">
               <strong>
                 {userData.totalAmount > 0
-                  ? `₹${numberWithCommas(userData.totalAmount)}/-`
+                  ? `${numberWithCommas(userData.totalAmount)}/-`
                   : `--`}
               </strong>
             </td>

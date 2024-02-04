@@ -1,6 +1,5 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-
 import App from "./App";
 import { ThemeProvider } from "@mui/material";
 import { theme } from "./utils/theme";
@@ -13,5 +12,5 @@ root.render(
     <ThemeProvider theme={theme}>
       <App />
     </ThemeProvider>
-  </StrictMode>,
+  </StrictMode>
 );

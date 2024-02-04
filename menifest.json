@@ -40,8 +40,7 @@
     {
       "src": "./src/assets/android/android-launchericon-144-144.png",
       "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "maskable"
+      "type": "image/png"
     },
     {
       "src": "./src/assets/android/android-launchericon-96-96.png",

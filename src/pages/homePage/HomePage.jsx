@@ -211,7 +211,29 @@ const HomePage = () => {
   };
 
   const receiptRef = useRef(null);
-
+  const clearData = () => {
+    setLoading(false);
+    setESignModelOpen(false);
+    setEsignError(false);
+    setEsign("");
+    setGeneratorData({
+      generatorMobile: "",
+      generatorName: "",
+    });
+    setFullName("");
+    setTotalAmount(null);
+    setPaymentMethod("Cash");
+    setCurrentStep(1);
+    setAmountDetails({
+      subscriptionFee: null,
+      groupWeddingFee: null,
+      forCasteDinner: null,
+      forHappyMarriage: null,
+      councilFees: null,
+      education: null,
+      donation: null,
+    });
+  };
   const downloadPDF = () => {
     setLoading(true);
     const capture = receiptRef.current;
@@ -226,15 +248,8 @@ const HomePage = () => {
         format: "a4",
       });
       pdf.addImage(canvas, "PNG", 15, 20, 175, 250);
-      pdf.save("centered-document.pdf");
-      setLoading(false);
-      setESignModelOpen(false);
-      setEsignError(false);
-      setEsign("");
-      setGeneratorData({
-        generatorMobile: "",
-        generatorName: "",
-      });
+      pdf.save(`${userData.fullName}.pdf`);
+      clearData();
     });
   };
 
@@ -246,7 +261,23 @@ const HomePage = () => {
     currentDate,
   };
 
-  const handleSubmitEsign = () => {
+  function getTimestampWithMilliseconds() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const seconds = String(now.getSeconds()).padStart(2, "0");
+    const milliseconds = String(now.getMilliseconds()).padStart(3, "0");
+
+    const Invoice_Id = `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
+    const timestamp = `${day}/${month}/${year} ${hours}:${minutes}:${seconds}`;
+
+    return { timestamp, Invoice_Id };
+  }
+
+  const handleSubmitEsign = async () => {
     const envData = import.meta.env.VITE_DATA;
     const parsedEnvdata = envData.split(",");
     const dataArrOfObj = [];
@@ -269,6 +300,56 @@ const HomePage = () => {
         generatorMobile: invoiceGenerator.mobile,
         generatorName: invoiceGenerator.name,
       });
+
+      // Prepare data for submission
+      const formData = {
+        Invoice_Id: getTimestampWithMilliseconds().Invoice_Id.toString(), // Replace with a function to generate Invoice Id
+        TimeStemp: getTimestampWithMilliseconds().timestamp.toString(),
+        Full_Name: fullName,
+        Mobile: generatorData.generatorMobile, // Assuming you want to use the generator's mobile
+        City: "Surat", // You may add more fields if needed
+        Total_Amount: totalAmount.toString(),
+        Payment_Method: paymentMethod,
+        Subscription_Fee: amountDetails.subscriptionFee?.toString() || "",
+        Group_Wedding_Fee: amountDetails.groupWeddingFee?.toString() || "",
+        For_Caste_Dinner: amountDetails.forCasteDinner?.toString() || "",
+        For_Happy_Marriage: amountDetails.forHappyMarriage?.toString() || "",
+        Council_Fees: amountDetails.councilFees?.toString() || "",
+        Education: amountDetails.education?.toString() || "",
+        Donation: amountDetails.donation?.toString() || "",
+        Other: "Other_Field", // You may add more fields if needed
+        Generated_By: generatorData.generatorName,
+      };
+
+      try {
+        const response = await fetch(
+          "https://script.google.com/macros/s/AKfycbxcRBD2PtG93ELUtZmO6F9HnflbOf8iE1kf2dD7bt_IE5iDN1i6anB5UA-CnXUqPYVbVQ/exec",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+              // Add authorization header if required
+              Authorization:
+                "Bearer AKfycbxcRBD2PtG93ELUtZmO6F9HnflbOf8iE1kf2dD7bt_IE5iDN1i6anB5UA-CnXUqPYVbVQ",
+            },
+            body: formData,
+          }
+        );
+
+        if (response.ok) {
+          console.log("Data sent successfully to Google Sheets!");
+        } else {
+          console.error(
+            "Error sending data to Google Sheets:",
+            response.statusText
+          );
+          // Optionally, you can handle errors here
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        // Optionally, you can handle errors here
+      }
+
       setTimeout(() => {
         downloadPDF();
       }, 500);
@@ -280,6 +361,7 @@ const HomePage = () => {
       setEsignError(true);
     }
   };
+
   return (
     <>
       <div
