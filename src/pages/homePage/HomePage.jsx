@@ -258,6 +258,7 @@ const HomePage = () => {
     });
     setFullName("");
     setMobileNumber(null);
+    setCity("");
     setTotalAmount(null);
     setPaymentMethod("Cash");
     setCurrentStep(1);
@@ -285,7 +286,7 @@ const HomePage = () => {
         unit: "mm",
         format: "a4",
       });
-      pdf.addImage(canvas, "PNG", 15, 20, 175, 250);
+      pdf.addImage(canvas, "PNG", 30, 20, 150, 250);
       pdf.save(`${userData.fullName}.pdf`);
       clearData();
     });

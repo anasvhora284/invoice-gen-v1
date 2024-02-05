@@ -68,7 +68,7 @@ table tr td:last-child {
 }
 
 .client-name {
-  font-size: 1.3rem;
+  font-size: 1rem;
   vertical-align: top;
 }
 
@@ -161,5 +161,6 @@ table tr td:last-child {
 }
 
 .generator-data {
+  font-size: 1rem;
   gap: 10px;
 }
