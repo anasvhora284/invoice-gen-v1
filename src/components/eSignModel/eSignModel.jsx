@@ -15,6 +15,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 const EsignModel = ({
   open,
   setOpen,
+  setLoading,
   handleSubmit,
   setEsignError,
   eSignError,
@@ -26,6 +27,7 @@ const EsignModel = ({
     setOpen(false);
     setEsign("");
     setEsignError(false);
+    setLoading(false);
   };
 
   const handleEsignChange = (event) => {
