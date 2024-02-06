@@ -9,21 +9,6 @@ const InvoiceHtml = ({ userData, generatorData }) => {
     date.toString().slice(4, 7) +
     date.toString().slice(10, 15);
 
-  function getTimestampWithMilliseconds() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
-    const seconds = String(now.getSeconds()).padStart(2, "0");
-    const milliseconds = String(now.getMilliseconds()).padStart(3, "0");
-
-    const timestamp = `${year}${month}${day}${hours}${minutes}${seconds}${milliseconds}`;
-
-    return timestamp;
-  }
-
   const paymentDescription = {
     subscriptionFee: "ઉમેદવારી ફી ના",
     groupWeddingFee: "સમુહ લગ્ન ફી",
@@ -92,7 +77,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           </tr>
           <tr>
             <td>
-              Invoice No: <strong>{getTimestampWithMilliseconds()}</strong>
+              Invoice No: <strong>{userData.invoiceNumber}</strong>
             </td>
             <td>+91 94996 50790</td>
           </tr>

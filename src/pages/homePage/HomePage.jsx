@@ -82,6 +82,7 @@ const HomePage = () => {
     generatorName: "",
     generatorMobile: "",
   });
+  const [invoiceNumber, setInvoiceNumber] = useState("");
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
@@ -95,6 +96,38 @@ const HomePage = () => {
 
     // Clear the interval when the component is unmounted
     return () => clearInterval(intervalId);
+  }, []);
+
+  const getInvoiceNumber = async () => {
+    var requestOptions = {
+      method: "GET",
+      redirect: "follow",
+    };
+
+    try {
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbzv5psjzjmtRfCRYvEa2IyYBLIcTjpL9mI6t5x752xusrQ8eiPa3G4ZeAkCnh0ah7-p3A/exec",
+        requestOptions
+      );
+
+      if (response.ok) {
+        const result = await response.text();
+        setInvoiceNumber(result);
+        console.log(result);
+      } else {
+        console.error("Failed to fetch invoice number:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching invoice number:", error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchInvoiceNumber = async () => {
+      await getInvoiceNumber();
+    };
+
+    fetchInvoiceNumber();
   }, []);
 
   const handleFullNameChange = (event) => {
@@ -293,6 +326,7 @@ const HomePage = () => {
   };
 
   const userData = {
+    invoiceNumber: invoiceNumber,
     fullName,
     mobileNumber,
     city,
@@ -319,6 +353,7 @@ const HomePage = () => {
   }
 
   const handleSubmitEsign = async () => {
+    setLoading(true);
     const envData = import.meta.env.VITE_DATA;
     const parsedEnvdata = envData.split(",");
     const dataArrOfObj = [];
@@ -344,7 +379,7 @@ const HomePage = () => {
 
       // Prepare data for submission
       const formData = {
-        Invoice_Id: getTimestampWithMilliseconds().Invoice_Id.toString(), // Replace with a function to generate Invoice Id
+        Invoice_Id: invoiceNumber, // Replace with a function to generate Invoice Id
         TimeStemp: getTimestampWithMilliseconds().timestamp.toString(),
         Full_Name: fullName,
         Mobile: mobileNumber, // Assuming you want to use the generator's mobile
@@ -358,34 +393,28 @@ const HomePage = () => {
         Council_Fees: amountDetails.councilFees?.toString() || "",
         Education: amountDetails.education?.toString() || "",
         Donation: amountDetails.donation?.toString() || "",
-        Other: amountDetails.other?.toString() || "", // You may add more fields if needed
-        Generated_By: generatorData.generatorName,
+        Other: amountDetails.other?.toString() || "",
+        Generated_By: invoiceGenerator.name.toString(),
+      };
+
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "text/plain;charset=utf-8");
+
+      var requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: JSON.stringify(formData),
+        redirect: "follow",
       };
 
       try {
         const response = await fetch(
-          "https://script.google.com/macros/s/AKfycbxcRBD2PtG93ELUtZmO6F9HnflbOf8iE1kf2dD7bt_IE5iDN1i6anB5UA-CnXUqPYVbVQ/exec",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/x-www-form-urlencoded",
-              // Add authorization header if required
-              Authorization:
-                "Bearer AKfycbxcRBD2PtG93ELUtZmO6F9HnflbOf8iE1kf2dD7bt_IE5iDN1i6anB5UA-CnXUqPYVbVQ",
-            },
-            body: formData,
-          }
-        );
-
-        if (response.ok) {
-          console.log("Data sent successfully to Google Sheets!");
-        } else {
-          console.error(
-            "Error sending data to Google Sheets:",
-            response.statusText
-          );
-          // Optionally, you can handle errors here
-        }
+          "https://script.google.com/macros/s/AKfycbyToJPZI43L7T7z12unbNphluY4U102egd3SGsKfaUsHhtTyI4QdpCdrKtc8JAGtZmvQQ/exec",
+          requestOptions
+        )
+          .then((response) => response.text())
+          .then((result) => console.log(result))
+          .catch((error) => console.log("error", error));
       } catch (error) {
         console.error("Error:", error);
         // Optionally, you can handle errors here
@@ -1268,6 +1297,7 @@ const HomePage = () => {
             <EsignModel
               open={eSignModelOpen}
               setOpen={setESignModelOpen}
+              setLoading={setLoading}
               handleSubmit={handleSubmitEsign}
               setEsignError={setEsignError}
               eSignError={eSignError}
