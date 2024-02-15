@@ -51,6 +51,7 @@ const BpCheckedIcon = styled(BpIcon)(({ theme }) => ({
 const HomePage = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [fullName, setFullName] = useState("");
+  const [reprintInvoiceId, setReprintInvoiceId] = useState("");
   const [mobileNumber, setMobileNumber] = useState(null);
   const [city, setCity] = useState("");
   const [totalAmount, setTotalAmount] = useState(null);
@@ -66,6 +67,7 @@ const HomePage = () => {
     other: null,
   });
   const [fullNameError, setFullNameError] = useState(false);
+  const [reprintInvoiceIdError, setReprintInvoiceIdError] = useState(false);
   const [mobileNumberError, setMobileNumberError] = useState(false);
   const [cityError, setCityError] = useState(false);
   const [totalAmountError, setTotalAmountError] = useState(false);
@@ -74,6 +76,7 @@ const HomePage = () => {
     message: "",
   });
   const [currentStep, setCurrentStep] = useState(1);
+  const [printPage, setPrintPage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [eSignModelOpen, setESignModelOpen] = useState(false);
   const [eSign, setEsign] = React.useState("");
@@ -83,6 +86,7 @@ const HomePage = () => {
     generatorMobile: "",
   });
   const [invoiceNumber, setInvoiceNumber] = useState("");
+  const [receivedDateFromAPI, setReceivedDateFromAPI] = useState("");
 
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
@@ -106,14 +110,13 @@ const HomePage = () => {
 
     try {
       const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbzv5psjzjmtRfCRYvEa2IyYBLIcTjpL9mI6t5x752xusrQ8eiPa3G4ZeAkCnh0ah7-p3A/exec",
+        "https://script.google.com/macros/s/AKfycbyToJPZI43L7T7z12unbNphluY4U102egd3SGsKfaUsHhtTyI4QdpCdrKtc8JAGtZmvQQ/exec",
         requestOptions
       );
 
       if (response.ok) {
         const result = await response.text();
         setInvoiceNumber(result);
-        console.log(result);
       } else {
         console.error("Failed to fetch invoice number:", response.statusText);
       }
@@ -218,6 +221,10 @@ const HomePage = () => {
     }
   };
 
+  const checkGenerateRePrint = () => {
+    return reprintInvoiceIdError;
+  };
+
   useEffect(() => {
     const amountDetailsValues = Object.values(amountDetails);
 
@@ -257,12 +264,16 @@ const HomePage = () => {
   }, [amountDetails, totalAmount]);
 
   function numberWithCommas(x) {
-    return x.toLocaleString("en-IN", {
-      style: "currency",
-      currency: "INR",
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 2,
-    });
+    if (x !== null && x !== undefined) {
+      return x.toLocaleString("en-IN", {
+        style: "currency",
+        currency: "INR",
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 2,
+      });
+    } else {
+      return "--"; // or handle it in a way that makes sense for your application
+    }
   }
 
   const getAmountDetailsCalculation = () => {
@@ -305,6 +316,8 @@ const HomePage = () => {
       donation: null,
       other: null,
     });
+    setReprintInvoiceId("");
+    setPrintPage(false);
   };
   const downloadPDF = () => {
     setLoading(true);
@@ -333,7 +346,9 @@ const HomePage = () => {
     totalAmount,
     amountDetails,
     paymentMethod,
-    currentDate,
+    currentDate: reprintInvoiceId ? receivedDateFromAPI : currentDate,
+    generatorData: generatorData,
+    reprintInvoiceId,
   };
 
   function getTimestampWithMilliseconds() {
@@ -353,82 +368,154 @@ const HomePage = () => {
   }
 
   const handleSubmitEsign = async () => {
+    getInvoiceNumber();
     setLoading(true);
-    const envData = import.meta.env.VITE_DATA;
-    const parsedEnvdata = envData.split(",");
-    const dataArrOfObj = [];
 
-    for (let i = 0; i < parsedEnvdata.length; i += 3) {
-      const obj = {
-        name: parsedEnvdata[i].replaceAll("_", " "),
-        mobile: parsedEnvdata[i + 1],
-        key: parsedEnvdata[i + 2].replaceAll("_", " "),
-      };
-      dataArrOfObj.push(obj);
-    }
-
-    const invoiceGenerator = dataArrOfObj.find((data) => {
-      return data.key === eSign;
-    });
-
-    if (invoiceGenerator) {
-      setGeneratorData({
-        generatorMobile: invoiceGenerator.mobile,
-        generatorName: invoiceGenerator.name,
-      });
-
-      // Prepare data for submission
-      const formData = {
-        Invoice_Id: invoiceNumber, // Replace with a function to generate Invoice Id
-        TimeStemp: getTimestampWithMilliseconds().timestamp.toString(),
-        Full_Name: fullName,
-        Mobile: mobileNumber, // Assuming you want to use the generator's mobile
-        City: city, // You may add more fields if needed
-        Total_Amount: totalAmount.toString(),
-        Payment_Method: paymentMethod,
-        Subscription_Fee: amountDetails.subscriptionFee?.toString() || "",
-        Group_Wedding_Fee: amountDetails.groupWeddingFee?.toString() || "",
-        For_Caste_Dinner: amountDetails.forCasteDinner?.toString() || "",
-        For_Happy_Marriage: amountDetails.forHappyMarriage?.toString() || "",
-        Council_Fees: amountDetails.councilFees?.toString() || "",
-        Education: amountDetails.education?.toString() || "",
-        Donation: amountDetails.donation?.toString() || "",
-        Other: amountDetails.other?.toString() || "",
-        Generated_By: invoiceGenerator.name.toString(),
-      };
-
-      var myHeaders = new Headers();
-      myHeaders.append("Content-Type", "text/plain;charset=utf-8");
-
-      var requestOptions = {
-        method: "POST",
-        headers: myHeaders,
-        body: JSON.stringify(formData),
-        redirect: "follow",
-      };
-
-      try {
-        const response = await fetch(
-          "https://script.google.com/macros/s/AKfycbyToJPZI43L7T7z12unbNphluY4U102egd3SGsKfaUsHhtTyI4QdpCdrKtc8JAGtZmvQQ/exec",
-          requestOptions
-        )
-          .then((response) => response.text())
-          .then((result) => console.log(result))
-          .catch((error) => console.log("error", error));
-      } catch (error) {
-        console.error("Error:", error);
-        // Optionally, you can handle errors here
-      }
-
+    // Check if it's a reprint
+    if (reprintInvoiceId) {
       setTimeout(() => {
         downloadPDF();
+        setLoading(false);
       }, 500);
+      return;
     } else {
-      setGeneratorData({
-        generatorMobile: "",
-        generatorName: "",
+      // Continue with the regular submission logic
+      const envData = import.meta.env.VITE_DATA;
+      const parsedEnvdata = envData.split(",");
+      const dataArrOfObj = [];
+
+      for (let i = 0; i < parsedEnvdata.length; i += 3) {
+        const obj = {
+          name: parsedEnvdata[i].replaceAll("_", " "),
+          mobile: parsedEnvdata[i + 1],
+          key: parsedEnvdata[i + 2].replaceAll("_", " "),
+        };
+        dataArrOfObj.push(obj);
+      }
+
+      const invoiceGenerator = dataArrOfObj.find((data) => {
+        return data.key === eSign;
       });
-      setEsignError(true);
+
+      if (invoiceGenerator) {
+        setGeneratorData({
+          generatorMobile: invoiceGenerator.mobile,
+          generatorName: invoiceGenerator.name,
+        });
+
+        // Prepare data for submission
+        const formData = {
+          Invoice_Id: invoiceNumber, // Replace with a function to generate Invoice Id
+          TimeStemp: getTimestampWithMilliseconds().timestamp.toString(),
+          Full_Name: fullName,
+          Mobile: mobileNumber, // Assuming you want to use the generator's mobile
+          City: city, // You may add more fields if needed
+          Total_Amount: totalAmount.toString(),
+          Payment_Method: paymentMethod,
+          Subscription_Fee: amountDetails.subscriptionFee?.toString() || "",
+          Group_Wedding_Fee: amountDetails.groupWeddingFee?.toString() || "",
+          For_Caste_Dinner: amountDetails.forCasteDinner?.toString() || "",
+          For_Happy_Marriage: amountDetails.forHappyMarriage?.toString() || "",
+          Council_Fees: amountDetails.councilFees?.toString() || "",
+          Education: amountDetails.education?.toString() || "",
+          Donation: amountDetails.donation?.toString() || "",
+          Other: amountDetails.other?.toString() || "",
+          Generated_By_Name: invoiceGenerator.name.toString(),
+          Generated_By_Mobile: invoiceGenerator.mobile.toString(),
+        };
+
+        var myHeaders = new Headers();
+        myHeaders.append("Content-Type", "text/plain;charset=utf-8");
+
+        var requestOptions = {
+          method: "POST",
+          headers: myHeaders,
+          body: JSON.stringify(formData),
+          redirect: "follow",
+        };
+        try {
+          const response = await fetch(
+            "https://script.google.com/macros/s/AKfycbyToJPZI43L7T7z12unbNphluY4U102egd3SGsKfaUsHhtTyI4QdpCdrKtc8JAGtZmvQQ/exec",
+            requestOptions
+          )
+            .then((response) => response.text())
+            .then((result) => console.log(result))
+            .catch((error) => console.log("error", error));
+
+          downloadPDF();
+        } catch (error) {
+          console.error("Error:", error);
+        }
+      } else {
+        setGeneratorData({
+          generatorMobile: "",
+          generatorName: "",
+        });
+        setEsignError(true);
+      }
+    }
+  };
+
+  const handleReprint = () => {
+    printPage
+      ? (setPrintPage(false), clearData(), setReprintInvoiceIdError(false))
+      : setPrintPage(true);
+  };
+
+  const fetchReprintData = async () => {
+    try {
+      const response = await fetch(
+        `https://script.google.com/macros/s/AKfycbyToJPZI43L7T7z12unbNphluY4U102egd3SGsKfaUsHhtTyI4QdpCdrKtc8JAGtZmvQQ/exec?invoiceId=${reprintInvoiceId}`
+      );
+      if (response.ok) {
+        const result = await response.json(); // Assuming the response is in JSON format
+        setInvoiceNumber(result[0]);
+        setReceivedDateFromAPI(result[1]);
+        setFullName(result[2]);
+        setMobileNumber(result[3]);
+        setCity(result[4]);
+        setTotalAmount(result[5]);
+        setPaymentMethod(result[6]);
+
+        setAmountDetails({
+          subscriptionFee: result[7] ? Number(result[7]) : null,
+          groupWeddingFee: result[8] ? Number(result[8]) : null,
+          forCasteDinner: result[9] ? Number(result[9]) : null,
+          forHappyMarriage: result[10] ? Number(result[10]) : null,
+          councilFees: result[11] ? Number(result[11]) : null,
+          education: result[12] ? Number(result[12]) : null,
+          donation: result[13] ? Number(result[13]) : null,
+          other: result[14] ? Number(result[14]) : null,
+        });
+        setGeneratorData({
+          generatorName: result[15],
+          generatorMobile: result[16],
+        });
+
+        // After setting the data, you can proceed to the next step or perform any other necessary actions
+        setCurrentStep(2);
+      } else {
+        console.error("Failed to fetch reprint data:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error fetching reprint data:", error);
+    }
+  };
+
+  const handleSubmitRePrint = () => {
+    fetchReprintData();
+    setCurrentStep(2);
+  };
+
+  const handleReprintInvoiceIdChange = (event) => {
+    const fullNameInputText = event.target.value;
+    const filteredText = fullNameInputText.replace(/[^A-Z0-9\/-]/g, "");
+    if (filteredText.length === 14) {
+      setReprintInvoiceIdError(false);
+      setReprintInvoiceId(filteredText);
+    } else {
+      setReprintInvoiceId(filteredText);
+      setReprintInvoiceIdError(true);
     }
   };
 
@@ -477,333 +564,421 @@ const HomePage = () => {
         </Box>
         {currentStep === 1 ? (
           <>
-            <Typography
-              sx={{
-                paddingBlock: "40px 10px",
-                fontFamily: "Montserrat",
-                fontWeight: "bold",
-                fontSize: "20px",
-                color: "#1f4373",
-              }}
-            >
-              Basic Details
-            </Typography>
-            <Box sx={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              <TextField
-                sx={{ width: "100%" }}
-                label="Full Name"
-                variant="standard"
-                value={fullName}
-                onChange={handleFullNameChange}
-                error={fullNameError}
-                helperText={fullNameError ? "Full Name is required" : ""}
-              />
-
-              <NumericFormat
-                label="Mobile Number"
-                value={mobileNumber}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                onValueChange={handleMobileNumberChange}
-                inputProps={{ inputMode: "numeric" }}
-                error={mobileNumberError}
-                helperText={
-                  mobileNumberError && !mobileNumber
-                    ? "Mobile Number is required"
-                    : mobileNumberError && mobileNumber
-                    ? "Mobile Number should be 10 digit long"
-                    : ""
-                }
-              />
-
-              <TextField
-                sx={{ width: "100%" }}
-                label="City"
-                variant="standard"
-                value={city}
-                onChange={handleCityChange}
-                error={cityError}
-                helperText={cityError ? "City Name is required" : ""}
-              />
-
-              <NumericFormat
-                label="Total Amount"
-                value={totalAmount}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={handleTotalAmountChange}
-                inputProps={{ inputMode: "numeric" }}
-                error={totalAmountError}
-                helperText={totalAmountError ? "Total Amount is required" : ""}
-              />
-              <Box sx={{ paddingBlock: "16px 0" }}>
-                <FormLabel>Total Amount In words:</FormLabel>
-                <Typography
-                  sx={{
-                    paddingBlock: "5px 0",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "16px",
-                    color: indigo[800],
-                  }}
-                >
-                  {totalAmount ? inWords(totalAmount) : " --"}
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  paddingBlock: "0px 20px",
-                  position: "relative",
-                  left: "5px",
-                }}
-              >
-                <FormControl>
-                  <FormLabel
-                    sx={{ paddingBlock: "16px 5px" }}
-                    id="demo-form-control-label-placement"
-                  >
-                    Payment Method
-                  </FormLabel>
-                  <RadioGroup
-                    row
-                    sx={{ gap: "16px" }}
-                    aria-labelledby="demo-form-control-label-placement"
-                    name="paymentMethod"
-                    value={paymentMethod}
-                    onChange={handlePaymentMethodChange}
-                  >
-                    <FormControlLabel
-                      value="Cash"
-                      control={
-                        <Radio
-                          checkedIcon={<BpCheckedIcon />}
-                          icon={<BpIcon />}
-                        />
-                      }
-                      label="Cash"
-                      labelPlacement="end"
-                    />
-
-                    <FormControlLabel
-                      value="Online"
-                      control={
-                        <Radio
-                          checkedIcon={<BpCheckedIcon />}
-                          icon={<BpIcon />}
-                        />
-                      }
-                      label="Online"
-                    />
-
-                    <FormControlLabel
-                      value="Cheque"
-                      control={
-                        <Radio
-                          checkedIcon={<BpCheckedIcon />}
-                          icon={<BpIcon />}
-                        />
-                      }
-                      label="Cheque"
-                    />
-                  </RadioGroup>
-                </FormControl>
-              </Box>
-            </Box>
-            <Divider sx={{ borderColor: "#1f4373" }} />
-            <Typography
-              sx={{
-                paddingBlock: "20px",
-                fontFamily: "Montserrat",
-                fontWeight: "bold",
-                fontSize: "20px",
-                color: "#1f4373",
-              }}
-            >
-              Amount Details
-            </Typography>
-
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: "16px",
-                marginBottom: "90px",
-              }}
-            >
-              <NumericFormat
-                label="ઉમેદવારી ફી ના"
-                value={amountDetails.subscriptionFee}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("subscriptionFee", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <NumericFormat
-                label="સમુહ લગ્ન ફી"
-                value={amountDetails.groupWeddingFee}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("groupWeddingFee", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <NumericFormat
-                label="જમણવારના"
-                value={amountDetails.forCasteDinner}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("forCasteDinner", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <NumericFormat
-                label="લગ્ન ખુશાલીના"
-                value={amountDetails.forHappyMarriage}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("forHappyMarriage", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <NumericFormat
-                label="સભાસદ ફી"
-                value={amountDetails.councilFees}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("councilFees", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <NumericFormat
-                label="એજ્યુકેશન"
-                value={amountDetails.education}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("education", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <NumericFormat
-                label="ડોનેશન"
-                value={amountDetails.donation}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("donation", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <NumericFormat
-                label="અન્ય"
-                value={amountDetails.other}
-                customInput={TextField}
-                variant="standard"
-                sx={{ width: "100%" }}
-                allowNegative={false}
-                thousandSeparator
-                thousandsGroupStyle="lakh"
-                onValueChange={(value) => {
-                  handleAmountDetailsChange("other", value);
-                }}
-                inputProps={{ inputMode: "numeric" }}
-              />
-              <Box sx={{ paddingBlock: "16px 0" }}>
-                <FormLabel>Amount details calculation:</FormLabel>
-                <Typography
-                  sx={{
-                    paddingBlock: "5px 0",
-                    fontFamily: "Montserrat",
-                    fontWeight: "bold",
-                    fontSize: "16px",
-                    color: indigo[800],
-                  }}
-                >
-                  {getAmountDetailsCalculation()}
-                </Typography>
-              </Box>
-              {amountDetailsError.notificationType && (
-                <Alert severity={amountDetailsError.notificationType}>
-                  {amountDetailsError.notificationType
-                    ? amountDetailsError.message
-                    : ""}
-                </Alert>
-              )}
-            </Box>
-
             <Box
               sx={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                padding: "16px",
-                color: "#1f4373",
-                position: "fixed",
-                bottom: "0",
-                background: "white",
-                zIndex: "5",
+                justifyContent: "space-between",
                 boxShadow: "0 -8px 6px -6px #e0e4e9",
-                left: "0",
-                width: "100%",
-                paddingInline: "0",
               }}
             >
+              <Typography
+                sx={{
+                  paddingBlock: "40px 10px",
+                  fontFamily: "Montserrat",
+                  fontWeight: "bold",
+                  fontSize: "20px",
+                  color: "#1f4373",
+                }}
+              >
+                Basic Details
+              </Typography>
+
               <Button
                 variant="contained"
                 size="small"
-                disabled={checkGeneratedInvoiceDisabled()}
                 sx={{
                   fontFamily: "Montserrat",
                   fontWeight: "bold",
                   fontSize: "16px",
                   textTransform: "none",
-                  width: "calc(100vw - 32px)",
+                  margin: "30px 0px 0px 0px",
                 }}
-                onClick={handleSubmitStep1}
+                onClick={handleReprint}
               >
-                submit
+                {printPage ? "Print Invoice" : "Re-Print Invoice"}
               </Button>
             </Box>
+            {printPage ? (
+              <>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: "16px" }}
+                >
+                  <TextField
+                    sx={{ width: "100%" }}
+                    label="Invoice Id"
+                    placeholder="IN-00001-23/24"
+                    variant="standard"
+                    value={reprintInvoiceId}
+                    onChange={handleReprintInvoiceIdChange}
+                    error={reprintInvoiceIdError}
+                    helperText={
+                      reprintInvoiceIdError && !reprintInvoiceId
+                        ? "Invoice Id is required."
+                        : reprintInvoiceIdError && reprintInvoiceId
+                        ? "Enter valid Invoice Id."
+                        : ""
+                    }
+                  />
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "16px",
+                    color: "#1f4373",
+                    position: "fixed",
+                    bottom: "0",
+                    background: "white",
+                    zIndex: "5",
+                    boxShadow: "0 -8px 6px -6px #e0e4e9",
+                    left: "0",
+                    width: "100%",
+                    paddingInline: "0",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    size="small"
+                    disabled={checkGenerateRePrint()}
+                    sx={{
+                      fontFamily: "Montserrat",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                      textTransform: "none",
+                      width: "calc(100vw - 32px)",
+                    }}
+                    onClick={handleSubmitRePrint}
+                  >
+                    submit
+                  </Button>
+                </Box>
+              </>
+            ) : (
+              <>
+                <Box
+                  sx={{ display: "flex", flexDirection: "column", gap: "16px" }}
+                >
+                  <TextField
+                    sx={{ width: "100%" }}
+                    label="Full Name"
+                    variant="standard"
+                    value={fullName}
+                    onChange={handleFullNameChange}
+                    error={fullNameError}
+                    helperText={fullNameError ? "Full Name is required" : ""}
+                  />
+
+                  <NumericFormat
+                    label="Mobile Number"
+                    value={mobileNumber}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    onValueChange={handleMobileNumberChange}
+                    inputProps={{ inputMode: "numeric" }}
+                    error={mobileNumberError}
+                    helperText={
+                      mobileNumberError && !mobileNumber
+                        ? "Mobile Number is required"
+                        : mobileNumberError && mobileNumber
+                        ? "Mobile Number should be 10 digit long"
+                        : ""
+                    }
+                  />
+
+                  <TextField
+                    sx={{ width: "100%" }}
+                    label="City"
+                    variant="standard"
+                    value={city}
+                    onChange={handleCityChange}
+                    error={cityError}
+                    helperText={cityError ? "City Name is required" : ""}
+                  />
+
+                  <NumericFormat
+                    label="Total Amount"
+                    value={totalAmount}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={handleTotalAmountChange}
+                    inputProps={{ inputMode: "numeric" }}
+                    error={totalAmountError}
+                    helperText={
+                      totalAmountError ? "Total Amount is required" : ""
+                    }
+                  />
+                  <Box sx={{ paddingBlock: "16px 0" }}>
+                    <FormLabel>Total Amount In words:</FormLabel>
+                    <Typography
+                      sx={{
+                        paddingBlock: "5px 0",
+                        fontFamily: "Montserrat",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                        color: indigo[800],
+                      }}
+                    >
+                      {totalAmount ? inWords(totalAmount) : " --"}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      paddingBlock: "0px 20px",
+                      position: "relative",
+                      left: "5px",
+                    }}
+                  >
+                    <FormControl>
+                      <FormLabel
+                        sx={{ paddingBlock: "16px 5px" }}
+                        id="demo-form-control-label-placement"
+                      >
+                        Payment Method
+                      </FormLabel>
+                      <RadioGroup
+                        row
+                        sx={{ gap: "16px" }}
+                        aria-labelledby="demo-form-control-label-placement"
+                        name="paymentMethod"
+                        value={paymentMethod}
+                        onChange={handlePaymentMethodChange}
+                      >
+                        <FormControlLabel
+                          value="Cash"
+                          control={
+                            <Radio
+                              checkedIcon={<BpCheckedIcon />}
+                              icon={<BpIcon />}
+                            />
+                          }
+                          label="Cash"
+                          labelPlacement="end"
+                        />
+
+                        <FormControlLabel
+                          value="Online"
+                          control={
+                            <Radio
+                              checkedIcon={<BpCheckedIcon />}
+                              icon={<BpIcon />}
+                            />
+                          }
+                          label="Online"
+                        />
+
+                        <FormControlLabel
+                          value="Cheque"
+                          control={
+                            <Radio
+                              checkedIcon={<BpCheckedIcon />}
+                              icon={<BpIcon />}
+                            />
+                          }
+                          label="Cheque"
+                        />
+                      </RadioGroup>
+                    </FormControl>
+                  </Box>
+                </Box>
+                <Divider sx={{ borderColor: "#1f4373" }} />
+                <Typography
+                  sx={{
+                    paddingBlock: "20px",
+                    fontFamily: "Montserrat",
+                    fontWeight: "bold",
+                    fontSize: "20px",
+                    color: "#1f4373",
+                  }}
+                >
+                  Amount Details
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                    marginBottom: "90px",
+                  }}
+                >
+                  <NumericFormat
+                    label="ઉમેદવારી ફી ના"
+                    value={amountDetails.subscriptionFee}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("subscriptionFee", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <NumericFormat
+                    label="સમુહ લગ્ન ફી"
+                    value={amountDetails.groupWeddingFee}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("groupWeddingFee", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <NumericFormat
+                    label="જમણવારના"
+                    value={amountDetails.forCasteDinner}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("forCasteDinner", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <NumericFormat
+                    label="લગ્ન ખુશાલીના"
+                    value={amountDetails.forHappyMarriage}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("forHappyMarriage", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <NumericFormat
+                    label="સભાસદ ફી"
+                    value={amountDetails.councilFees}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("councilFees", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <NumericFormat
+                    label="એજ્યુકેશન"
+                    value={amountDetails.education}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("education", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <NumericFormat
+                    label="ડોનેશન"
+                    value={amountDetails.donation}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("donation", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <NumericFormat
+                    label="અન્ય"
+                    value={amountDetails.other}
+                    customInput={TextField}
+                    variant="standard"
+                    sx={{ width: "100%" }}
+                    allowNegative={false}
+                    thousandSeparator
+                    thousandsGroupStyle="lakh"
+                    onValueChange={(value) => {
+                      handleAmountDetailsChange("other", value);
+                    }}
+                    inputProps={{ inputMode: "numeric" }}
+                  />
+                  <Box sx={{ paddingBlock: "16px 0" }}>
+                    <FormLabel>Amount details calculation:</FormLabel>
+                    <Typography
+                      sx={{
+                        paddingBlock: "5px 0",
+                        fontFamily: "Montserrat",
+                        fontWeight: "bold",
+                        fontSize: "16px",
+                        color: indigo[800],
+                      }}
+                    >
+                      {getAmountDetailsCalculation()}
+                    </Typography>
+                  </Box>
+                  {amountDetailsError.notificationType && (
+                    <Alert severity={amountDetailsError.notificationType}>
+                      {amountDetailsError.notificationType
+                        ? amountDetailsError.message
+                        : ""}
+                    </Alert>
+                  )}
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "16px",
+                    color: "#1f4373",
+                    position: "fixed",
+                    bottom: "0",
+                    background: "white",
+                    zIndex: "5",
+                    boxShadow: "0 -8px 6px -6px #e0e4e9",
+                    left: "0",
+                    width: "100%",
+                    paddingInline: "0",
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    size="small"
+                    disabled={checkGeneratedInvoiceDisabled()}
+                    sx={{
+                      fontFamily: "Montserrat",
+                      fontWeight: "bold",
+                      fontSize: "16px",
+                      textTransform: "none",
+                      width: "calc(100vw - 32px)",
+                    }}
+                    onClick={handleSubmitStep1}
+                  >
+                    submit
+                  </Button>
+                </Box>
+              </>
+            )}
           </>
         ) : (
           <></>

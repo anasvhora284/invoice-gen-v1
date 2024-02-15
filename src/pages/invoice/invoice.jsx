@@ -4,10 +4,14 @@ import HeartIcon from "../../assets/HeartIcon.png";
 
 const InvoiceHtml = ({ userData, generatorData }) => {
   const date = userData.currentDate;
-  const formattedDate =
-    date.toString().slice(8, 11) +
-    date.toString().slice(4, 7) +
-    date.toString().slice(10, 15);
+  let formattedDate;
+
+  userData.reprintInvoiceId
+    ? (formattedDate = date.toString().slice(0, 10))
+    : (formattedDate =
+        date.toString().slice(8, 11) +
+        date.toString().slice(4, 7) +
+        date.toString().slice(10, 15));
 
   const paymentDescription = {
     subscriptionFee: "ઉમેદવારી ફી ના",
