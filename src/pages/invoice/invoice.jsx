@@ -124,7 +124,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           <tr>
             <td className="payment-info">
               <div>
-                <strong>{`${userData.paymentMethod} ${userData.paymentDetails ? "-" + userData.paymentDetails : ""}`}</strong>
+                <strong>{`${userData.paymentMethod} ${userData.paymentDetails ? " - " + userData.paymentDetails : ""}`}</strong>
               </div>
             </td>
             <td className="large total">
