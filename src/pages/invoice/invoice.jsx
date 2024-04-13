@@ -4,15 +4,16 @@ import HeartIcon from "../../assets/HeartIcon.png";
 
 const InvoiceHtml = ({ userData, generatorData }) => {
   const date = userData.currentDate;
-  let formattedDate;
+  // let formattedDate;
 
   userData.reprintInvoiceId
-    ? (formattedDate = date.toString().slice(0, 10))
-    : (formattedDate =
-        date.toString().slice(8, 11) +
-        date.toString().slice(4, 7) +
-        date.toString().slice(10, 15));
+  // ? (formattedDate = date.toString().slice(0, 10))
+  // : (formattedDate =
+  //     date.toString().slice(8, 11) +
+  //     date.toString().slice(4, 7) +
+  //     date.toString().slice(10, 15));
 
+  console.log(date, 'formattedDate');
   const paymentDescription = {
     subscriptionFee: "ઉમેદવારી ફી ના",
     groupWeddingFee: "સમુહ લગ્ન ફી",
@@ -75,7 +76,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           </tr>
           <tr>
             <td>
-              Invoice Date: <strong>{formattedDate}</strong>
+              Invoice Date: <strong>{date ? date.format("DD MMM YYYY") : "--"}</strong>
             </td>
             <td className="AddressField">આણંદ, ગુજરાત, 387130</td>
           </tr>
@@ -122,7 +123,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           <tr>
             <td className="payment-info">
               <div>
-                <strong>{userData.paymentMethod}</strong>
+                <strong>{`${userData.paymentMethod} ${userData.paymentDetails}`}</strong>
               </div>
             </td>
             <td className="large total">

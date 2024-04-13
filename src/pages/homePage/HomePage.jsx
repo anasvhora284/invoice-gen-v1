@@ -24,6 +24,9 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import EsignModel from "../../components/eSignModel/eSignModel";
 import LoadingButton from "@mui/lab/LoadingButton";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment";
+import moment from "moment/moment";
 
 const BpIcon = styled("span")(({ theme }) => ({
   borderRadius: "50%",
@@ -49,8 +52,9 @@ const BpCheckedIcon = styled(BpIcon)(({ theme }) => ({
 }));
 
 const HomePage = () => {
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(null);
   const [fullName, setFullName] = useState("");
+  const [paymentDetails, setPaymentDetails] = useState("");
   const [reprintInvoiceId, setReprintInvoiceId] = useState("");
   const [mobileNumber, setMobileNumber] = useState(null);
   const [city, setCity] = useState("");
@@ -91,16 +95,6 @@ const HomePage = () => {
   const handlePaymentMethodChange = (event) => {
     setPaymentMethod(event.target.value);
   };
-
-  useEffect(() => {
-    // Update current date and time every second
-    const intervalId = setInterval(() => {
-      setCurrentDate(new Date());
-    }, 1000);
-
-    // Clear the interval when the component is unmounted
-    return () => clearInterval(intervalId);
-  }, []);
 
   const getInvoiceNumber = async () => {
     var requestOptions = {
@@ -183,7 +177,11 @@ const HomePage = () => {
   };
 
   const checkGeneratedInvoiceDisabled = () => {
+    const maxValidDate = moment(currentDate);
+    const isValidDate = maxValidDate.isValid() && maxValidDate.year() >= 2000 && !(currentDate.isSameOrAfter(moment()));
+
     return !(
+      isValidDate &&
       fullName &&
       mobileNumber &&
       city &&
@@ -346,6 +344,7 @@ const HomePage = () => {
     totalAmount,
     amountDetails,
     paymentMethod,
+    paymentDetails,
     currentDate: reprintInvoiceId ? receivedDateFromAPI : currentDate,
     generatorData: generatorData,
     reprintInvoiceId,
@@ -406,12 +405,12 @@ const HomePage = () => {
         // Prepare data for submission
         const formData = {
           Invoice_Id: invoiceNumber, // Replace with a function to generate Invoice Id
-          TimeStemp: getTimestampWithMilliseconds().timestamp.toString(),
+          TimeStemp: currentDate.format("DD/MM/YYYY"),
           Full_Name: fullName,
           Mobile: mobileNumber, // Assuming you want to use the generator's mobile
           City: city, // You may add more fields if needed
           Total_Amount: totalAmount.toString(),
-          Payment_Method: paymentMethod,
+          Payment_Method: `${paymentMethod} ${paymentDetails}`,
           Subscription_Fee: amountDetails.subscriptionFee?.toString() || "",
           Group_Wedding_Fee: amountDetails.groupWeddingFee?.toString() || "",
           For_Caste_Dinner: amountDetails.forCasteDinner?.toString() || "",
@@ -616,8 +615,8 @@ const HomePage = () => {
                       reprintInvoiceIdError && !reprintInvoiceId
                         ? "Invoice Id is required."
                         : reprintInvoiceIdError && reprintInvoiceId
-                        ? "Enter valid Invoice Id."
-                        : ""
+                          ? "Enter valid Invoice Id."
+                          : ""
                     }
                   />
                 </Box>
@@ -660,6 +659,23 @@ const HomePage = () => {
                 <Box
                   sx={{ display: "flex", flexDirection: "column", gap: "16px" }}
                 >
+                  <LocalizationProvider dateAdapter={AdapterMoment}>
+                    <DatePicker
+                      label="Basic date picker"
+                      slotProps={{
+                        textField: {
+                          variant: 'standard'
+                        },
+                      }}
+                      value={currentDate}
+                      onChange={(newDate) => {
+                        setCurrentDate(newDate);
+                      }}
+                      format="DD/MM/YYYY"
+                      views={["year", "month", "day"]}
+                      maxDate={moment()}
+                    />
+                  </LocalizationProvider>
                   <TextField
                     sx={{ width: "100%" }}
                     label="Full Name"
@@ -684,8 +700,8 @@ const HomePage = () => {
                       mobileNumberError && !mobileNumber
                         ? "Mobile Number is required"
                         : mobileNumberError && mobileNumber
-                        ? "Mobile Number should be 10 digit long"
-                        : ""
+                          ? "Mobile Number should be 10 digit long"
+                          : ""
                     }
                   />
 
@@ -786,6 +802,15 @@ const HomePage = () => {
                         />
                       </RadioGroup>
                     </FormControl>
+                    {paymentMethod !== 'Cash' && <TextField
+                      sx={{ width: "100%", marginBottom: "20px" }}
+                      label="Payment Details"
+                      variant="standard"
+                      value={paymentDetails}
+                      onChange={(event) => {
+                        setPaymentDetails(event.target.value)
+                      }}
+                    />}
                   </Box>
                 </Box>
                 <Divider sx={{ borderColor: "#1f4373" }} />
