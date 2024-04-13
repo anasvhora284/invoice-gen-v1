@@ -303,6 +303,8 @@ const HomePage = () => {
     setCity("");
     setTotalAmount(null);
     setPaymentMethod("Cash");
+    setPaymentDetails("");
+    setCurrentDate(null);
     setCurrentStep(1);
     setAmountDetails({
       subscriptionFee: null,
@@ -405,7 +407,7 @@ const HomePage = () => {
         // Prepare data for submission
         const formData = {
           Invoice_Id: invoiceNumber, // Replace with a function to generate Invoice Id
-          TimeStemp: currentDate.format("DD/MM/YYYY"),
+          TimeStemp: currentDate ? currentDate.format("DD/MM/YYYY") : "",
           Full_Name: fullName,
           Mobile: mobileNumber, // Assuming you want to use the generator's mobile
           City: city, // You may add more fields if needed
@@ -661,7 +663,7 @@ const HomePage = () => {
                 >
                   <LocalizationProvider dateAdapter={AdapterMoment}>
                     <DatePicker
-                      label="Basic date picker"
+                      label="Date"
                       slotProps={{
                         textField: {
                           variant: 'standard'
@@ -1021,7 +1023,11 @@ const HomePage = () => {
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <IconButton
-                sx={{ backgroundColor: "#1f4373" }}
+                sx={{
+                  backgroundColor: "#1f4373", '&:hover': {
+                    backgroundColor: "#1f4373"
+                  }
+                }}
                 onClick={() => {
                   setCurrentStep(1);
                 }}
@@ -1038,6 +1044,29 @@ const HomePage = () => {
                 }}
               >
                 Invoice Summary
+              </Typography>
+            </Box>
+            <Box sx={{ marginBottom: "16px" }}>
+              <Typography
+                sx={{
+                  fontFamily: "Montserrat",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  color: "#333",
+                  marginBottom: "5px",
+                }}
+              >
+                Date:
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: "Montserrat",
+                  fontWeight: "light",
+                  fontSize: "16px",
+                  color: "#333",
+                }}
+              >
+                {currentDate ? currentDate.format("DD MMM YYYY") : "--"}
               </Typography>
             </Box>
             <Box sx={{ marginBottom: "16px" }}>
@@ -1152,7 +1181,7 @@ const HomePage = () => {
                   color: "#333",
                 }}
               >
-                {paymentMethod}
+                {paymentMethod} - {paymentDetails}
               </Typography>
             </Box>
 

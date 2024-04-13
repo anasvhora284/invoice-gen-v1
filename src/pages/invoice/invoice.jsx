@@ -1,6 +1,7 @@
 import "./invoice.css";
 import Logo from "../../assets/SplashScreenLogo.png";
 import HeartIcon from "../../assets/HeartIcon.png";
+import moment from "moment";
 
 const InvoiceHtml = ({ userData, generatorData }) => {
   const date = userData.currentDate;
@@ -76,7 +77,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           </tr>
           <tr>
             <td>
-              Invoice Date: <strong>{date ? date.format("DD MMM YYYY") : "--"}</strong>
+              Invoice Date: <strong>{date ? moment(date).format("DD MMM YYYY") : "--"}</strong>
             </td>
             <td className="AddressField">આણંદ, ગુજરાત, 387130</td>
           </tr>
@@ -123,7 +124,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           <tr>
             <td className="payment-info">
               <div>
-                <strong>{`${userData.paymentMethod} ${userData.paymentDetails}`}</strong>
+                <strong>{`${userData.paymentMethod} ${userData.paymentDetails ? "-" + userData.paymentDetails : ""}`}</strong>
               </div>
             </td>
             <td className="large total">
