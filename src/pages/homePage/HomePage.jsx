@@ -339,7 +339,7 @@ const HomePage = () => {
   };
 
   const userData = {
-    invoiceNumber: invoiceNumber,
+    invoiceNumber,
     fullName,
     mobileNumber,
     city,
@@ -347,8 +347,8 @@ const HomePage = () => {
     amountDetails,
     paymentMethod,
     paymentDetails,
-    currentDate: reprintInvoiceId ? receivedDateFromAPI : currentDate,
-    generatorData: generatorData,
+    currentDate,
+    generatorData,
     reprintInvoiceId,
   };
 
@@ -471,7 +471,7 @@ const HomePage = () => {
       if (response.ok) {
         const result = await response.json(); // Assuming the response is in JSON format
         setInvoiceNumber(result[0]);
-        setReceivedDateFromAPI(result[1]);
+        setCurrentDate(result[1]);
         setFullName(result[2]);
         setMobileNumber(result[3]);
         setCity(result[4]);
@@ -1030,6 +1030,32 @@ const HomePage = () => {
                 }}
                 onClick={() => {
                   setCurrentStep(1);
+                  setLoading(false);
+                  setESignModelOpen(false);
+                  setEsignError(false);
+                  setEsign("");
+                  setGeneratorData({
+                    generatorMobile: "",
+                    generatorName: "",
+                  });
+                  setFullName("");
+                  setMobileNumber(null);
+                  setCity("");
+                  setTotalAmount(null);
+                  setPaymentMethod("Cash");
+                  setPaymentDetails("");
+                  setCurrentDate(null);
+                  setAmountDetails({
+                    subscriptionFee: null,
+                    groupWeddingFee: null,
+                    forCasteDinner: null,
+                    forHappyMarriage: null,
+                    councilFees: null,
+                    education: null,
+                    donation: null,
+                    other: null,
+                  });
+                  setReprintInvoiceId("");
                 }}
               >
                 <ArrowBackIcon sx={{ fill: "white" }} fontSize={"small"} />
@@ -1066,7 +1092,7 @@ const HomePage = () => {
                   color: "#333",
                 }}
               >
-                {currentDate ? currentDate.format("DD MMM YYYY") : "--"}
+                {currentDate ? moment(currentDate, "DD/MM/YYYY").format("DD MMM YYYY") : "--"}
               </Typography>
             </Box>
             <Box sx={{ marginBottom: "16px" }}>
@@ -1181,7 +1207,7 @@ const HomePage = () => {
                   color: "#333",
                 }}
               >
-                {paymentMethod} - {paymentDetails}
+                {paymentMethod} {paymentDetails}
               </Typography>
             </Box>
 
@@ -1519,6 +1545,7 @@ const HomePage = () => {
                 onClick={() => {
                   setESignModelOpen(true);
                 }}
+                disabled={!currentDate}
               >
                 Proceed
               </LoadingButton>

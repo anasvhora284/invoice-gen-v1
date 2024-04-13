@@ -14,7 +14,6 @@ const InvoiceHtml = ({ userData, generatorData }) => {
   //     date.toString().slice(4, 7) +
   //     date.toString().slice(10, 15));
 
-  console.log(date, 'formattedDate');
   const paymentDescription = {
     subscriptionFee: "ઉમેદવારી ફી ના",
     groupWeddingFee: "સમુહ લગ્ન ફી",
@@ -77,7 +76,9 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           </tr>
           <tr>
             <td>
-              Invoice Date: <strong>{date ? moment(date).format("DD MMM YYYY") : "--"}</strong>
+              Invoice Date: <strong>
+                {date ? moment(date, "DD/MM/YYYY").format("DD MMM YYYY") : "--"}
+              </strong>
             </td>
             <td className="AddressField">આણંદ, ગુજરાત, 387130</td>
           </tr>
@@ -124,7 +125,7 @@ const InvoiceHtml = ({ userData, generatorData }) => {
           <tr>
             <td className="payment-info">
               <div>
-                <strong>{`${userData.paymentMethod} ${userData.paymentDetails ? " - " + userData.paymentDetails : ""}`}</strong>
+                <strong>{`${userData.paymentMethod} ${userData.paymentDetails ? + userData.paymentDetails : ""}`}</strong>
               </div>
             </td>
             <td className="large total">
